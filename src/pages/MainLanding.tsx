@@ -1,18 +1,18 @@
 import React from 'react';
 
 // --- IMPORT YOUR COMPONENTS ---
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import {Navbar} from '../components/Navbar';
+import {Footer} from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import { PatientJourney } from '../components/PatientJourney';
-import Testimonials from '../components/Testimonials';
+import {Testimonials} from '../components/Testimonials';
 import FAQ from '../components/FAQ';
 import Blogs from '../components/Blogs';
 import FounderMessage from '../components/FounderMessage';
 
 // --- NEW COMPONENTS (Create these files below) ---
 import HeroTwo from '../components/HeroTwo';
-import StickyMobileCTA from '../components/StickyMobileCTA';
+import StickyCTA from '../components/StickyCTA';
 
 
 
@@ -48,7 +48,7 @@ export default function MediVoyageLanding() {
       {/* 6. Footer */}
       <Footer />
         {/* 7. Sticky Mobile CTA */}
-        <StickyMobileCTA />
+        <StickyCTA />
 
     </div>
   );

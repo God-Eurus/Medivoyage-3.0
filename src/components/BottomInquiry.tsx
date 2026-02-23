@@ -7,7 +7,7 @@ export function BottomInquiry() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    // Simulate submission
+    // Simulate submission logic (no backend required for this demo)
     setTimeout(() => setSubmitted(false), 3000);
   };
 
@@ -27,11 +27,11 @@ export function BottomInquiry() {
               alt="Medical Consultant" 
               className="absolute inset-0 w-full h-full object-cover object-center" 
             />
-            {/* Gradient Overlay for depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            {/* Gradient Overlay - changed to 'to-b' (to bottom) so it's dark at the top for the text */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent"></div>
             
-            {/* Overlaid Text */}
-            <div className="absolute bottom-8 left-8 text-white z-10">
+            {/* Overlaid Text - Moved to top-8 */}
+            <div className="absolute top-8 left-8 text-white z-10">
               <p className="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Direct Access</p>
               <p className="text-xl font-serif leading-tight">Speak with a Medical Coordinator today.</p>
             </div>

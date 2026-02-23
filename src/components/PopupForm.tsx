@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowRight, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 export function PopupForm() {
   const [isVisible, setIsVisible] = useState(false);
@@ -26,8 +25,8 @@ export function PopupForm() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('inquiries').insert([formData]);
-      if (error) throw error;
+      // Simulated API call replacing Supabase
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       
       setIsSuccess(true);
       setTimeout(() => {
