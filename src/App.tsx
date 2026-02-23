@@ -11,9 +11,11 @@ import { StickyCTA } from './components/StickyCTA';
 import { PopupForm } from './components/PopupForm';
 import Treatment from './components/Treatment';
 import AboutUs from './components/AboutUs';
+import Wellness from './components/Wellness';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'treatments' | 'about'>('home');
+  // 1. Added 'wellness' to the allowed state types
+  const [currentView, setCurrentView] = useState<'home' | 'treatments' | 'about' | 'wellness'>('home');
 
   // --- NAVIGATION FUNCTIONS ---
   const navigateToHome = () => {
@@ -31,6 +33,12 @@ function App() {
     setCurrentView('about');
   };
 
+  // 2. Added navigation function for Wellness
+  const navigateToWellness = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setCurrentView('wellness');
+  };
+
   return (
     <div className="min-h-screen bg-white"> 
       
@@ -41,6 +49,7 @@ function App() {
             onHomeClick={navigateToHome}
             onTreatmentClick={navigateToTreatments} 
             onAboutClick={navigateToAbout}
+            onWellnessClick={navigateToWellness} // Passed down
           />
           <PopupForm /> 
           <Hero />
@@ -54,22 +63,40 @@ function App() {
         </>
       )}
 
-      {/* TREATMENTS VIEW - Now passing all nav props */}
+      {/* TREATMENTS VIEW */}
       {currentView === 'treatments' && (
         <Treatment 
           onHomeClick={navigateToHome}
           onTreatmentClick={navigateToTreatments}
           onAboutClick={navigateToAbout}
+          onWellnessClick={navigateToWellness} // Passed down
         />
       )}
 
-      {/* ABOUT VIEW - Now passing all nav props */}
+      {/* ABOUT VIEW */}
       {currentView === 'about' && (
         <AboutUs 
           onHomeClick={navigateToHome}
           onTreatmentClick={navigateToTreatments}
           onAboutClick={navigateToAbout}
+          onWellnessClick={navigateToWellness} // Passed down
         />
+      )}
+
+      {/* WELLNESS VIEW */}
+      {currentView === 'wellness' && (
+        <>
+          <Navbar 
+            onHomeClick={navigateToHome}
+            onTreatmentClick={navigateToTreatments} 
+            onAboutClick={navigateToAbout}
+            onWellnessClick={navigateToWellness}
+          />
+          <Wellness />
+          <BottomInquiry /> 
+          <Footer />
+          <StickyCTA />
+        </>
       )}
 
     </div>

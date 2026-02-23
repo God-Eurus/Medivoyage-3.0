@@ -6,15 +6,16 @@ interface NavbarProps {
   onHomeClick?: () => void;
   onTreatmentClick?: () => void;
   onAboutClick?: () => void;
+  onWellnessClick?: () => void; // Added wellness click prop
 }
 
-export function Navbar({ onHomeClick, onTreatmentClick, onAboutClick }: NavbarProps) {
+export function Navbar({ onHomeClick, onTreatmentClick, onAboutClick, onWellnessClick }: NavbarProps) {
   
   // Define links and their corresponding actions
   const navItems = [
     { label: 'About Us', action: onAboutClick },
     { label: 'Treatments', action: onTreatmentClick },
-    { label: 'Wellness', action: null } // Placeholder for future or scroll
+    { label: 'Wellness', action: onWellnessClick } // Connected the wellness action
   ];
 
   const scrollToForm = (e: React.MouseEvent<HTMLAnchorElement>) => {
