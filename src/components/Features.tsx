@@ -1,127 +1,152 @@
+"use client";
+
 import React from 'react';
-import { ArrowRight, Star, Shield, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
+
+const pillars = [
+  {
+    num: "01",
+    title: "Clinical Excellence",
+    desc: "We exclusively partner with JCI-accredited hospitals and strictly vetted, board-certified surgeons. A 98% satisfaction rate built on uncompromising medical safety.",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1000&auto=format&fit=crop"
+  },
+  {
+    num: "02",
+    title: "Zero Wait Times",
+    desc: "Time is critical. Our concierge team bypasses standard hospital waitlists, securing your private consultations and procedures within a 24-hour turnaround.",
+    image: "https://images.unsplash.com/photo-1499933374294-4584d31ac0f8?q=80&w=1000&auto=format&fit=crop"
+  },
+  {
+    num: "03",
+    title: "Holistic Concierge",
+    desc: "From fast-tracking priority medical visas to arranging private airport transfers and luxury recovery villas, we manage every logistical variable.",
+    image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1000&auto=format&fit=crop"
+  },
+  {
+    num: "04",
+    title: "Premium Recovery",
+    desc: "Post-procedure rehabilitation in dedicated luxury recovery retreats with 24/7 nursing staff and bespoke nutritional support plans.",
+    image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=1000&auto=format&fit=crop"
+  }
+];
+
+// --- Animation Variants ---
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+};
 
 export function Features() {
   return (
-    <section className="relative w-full py-24 bg-white font-manrope overflow-hidden text-black">
+    <section className="py-24 md:py-40 bg-white font-manrope text-black flex justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
       
-      {/* 1. ARCHITECTURAL GRID BACKGROUND */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Vertical Center Line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-100 hidden md:block" />
-        {/* Horizontal Line */}
-        <div className="absolute top-[35%] left-0 right-0 h-px bg-gray-100" />
-      </div>
-
-      {/* 2. MAIN CONTENT WRAPPER */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 h-full flex flex-col">
+      <div className="w-full max-w-[90rem]">
         
-        {/* --- TOP SECTION: NARRATIVE --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 mb-24 relative">
+        {/* ==========================================
+            SPLIT HEADER
+            ========================================== */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 mb-16 md:mb-24">
+          <motion.div 
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={fadeUp}
+            className="md:w-1/2"
+          >
+            <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] text-gray-400 block mb-6">
+              Why MediVoyage
+            </span>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tighter text-black leading-[1.05]">
+              The Standard <br className="hidden md:block" />
+              <span className="font-light text-gray-400">of care.</span>
+            </h2>
+          </motion.div>
           
-          {/* Left: The Hook */}
-          <div className="flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <span className="h-px w-12 bg-black"></span>
-                <span className="text-xs font-bold tracking-[0.2em] uppercase text-gray-400">
-                  The MediVoyage Standard
-                </span>
-              </div>
+          <motion.div 
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={fadeUp}
+            className="md:w-5/12 lg:w-1/3"
+          >
+            <p className="text-gray-500 text-sm md:text-base leading-relaxed font-medium">
+              We don't just book appointments; we engineer a complete medical ecosystem around your safety, combining world-class clinical oversight with elite hospitality.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* ==========================================
+            THE 2x2 ARCHITECTURAL WINDOW GRID
+            ========================================== */}
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="grid grid-cols-1 md:grid-cols-2 border-l border-t border-black/10 bg-white"
+        >
+          {pillars.map((pillar, index) => (
+            <motion.div 
+              key={index}
+              variants={fadeUp}
+              className="group relative h-[450px] lg:h-[550px] overflow-hidden border-r border-b border-black/10 cursor-pointer"
+            >
               
-              <h2 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-[0.9] mb-8">
-                Why Patients <br />
-                <span className="text-gray-400 italic font-serif">Choose Us.</span>
-              </h2>
-            </div>
-            
-            {/* Stats / Badges */}
-            <div className="flex gap-8 border-t border-gray-100 pt-8 mt-4">
-              <div>
-                <span className="block text-3xl font-extrabold">98%</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Satisfaction</span>
-              </div>
-              <div>
-                <span className="block text-3xl font-extrabold">24h</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Turnaround</span>
-              </div>
-            </div>
-          </div>
+              {/* 1. Background Image (Full Color, Slow Zoom on Hover) */}
+              <img 
+                src={pillar.image} 
+                alt={pillar.title} 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 ease-out"
+              />
+              
+              {/* 2. Sharp Gradient Overlay (Maintains readability over bright images) */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent group-hover:from-black/80 transition-colors duration-700" />
 
-          {/* Right: The Pitch (Pushed down for asymmetry) */}
-          <div className="md:pt-32">
-            <p className="text-xl md:text-2xl font-medium leading-relaxed text-gray-800 mb-8">
-              We don't just book appointments; we engineer a complete medical ecosystem around your safety. 
-            </p>
-            <p className="text-sm text-gray-500 font-medium leading-relaxed mb-8 max-w-md">
-              From initial consultation to your safe return home, our concierge team handles every detail—flights, visas, and accommodation—ensuring a stress-free journey to better health.
-            </p>
-            
-            {/* Feature List */}
-            <div className="space-y-4">
-              {[
-                { icon: Shield, text: "JCI Accredited Hospitals Only" },
-                { icon: Star, text: "Board Certified Surgeons" },
-                { icon: Clock, text: "Zero Wait Time Policy" }
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-black">
-                    <item.icon className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold uppercase tracking-wide">{item.text}</span>
+              {/* 3. The Overlay Content Container */}
+              <div className="absolute inset-0 p-8 md:p-10 lg:p-12 flex flex-col justify-between z-20">
+                
+                {/* Top: Number Tag (Sharp Square Box) */}
+                <div>
+                   <span className="inline-flex items-center justify-center w-12 h-12 border border-white/20 bg-black/40 backdrop-blur-md text-white text-xs font-bold tracking-widest uppercase">
+                    {pillar.num}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* --- BOTTOM SECTION: FEATURED TREATMENTS (Editorial Cards) --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-end">
-          
-          {/* Card 1: Hair - Image Left, Text Over/Bottom */}
-          <div className="group relative cursor-pointer">
-             <div className="relative overflow-hidden aspect-[4/5] md:aspect-[16/9] lg:aspect-[2/1] bg-gray-100">
-                <img 
-                  src="./imgone.jpeg" 
-                  alt="Hair Transplant" 
-                  // Added object-top here
-                  className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out" 
-                />
-                {/* Number Overlay */}
-                <div className="absolute top-4 left-4 text-xs font-bold text-white mix-blend-difference z-10">01 — RESTORATION</div>
-             </div>
-             
-             <div className="pt-6 flex justify-between items-start border-t border-black mt-4">
-               <div>
-                  <h3 className="text-2xl font-bold mb-2 group-hover:translate-x-2 transition-transform duration-300">Hair Restoration</h3>
-                  <p className="text-sm text-gray-500 max-w-xs">Advanced FUE & DHI techniques with lifetime warranty.</p>
-               </div>
-               <ArrowRight className="w-6 h-6 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-             </div>
-          </div>
+                {/* Bottom: Title, Description & Action */}
+                <div className="flex flex-col max-w-xl">
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tighter text-white mb-4 group-hover:translate-x-1 transition-transform duration-500">
+                    {pillar.title}
+                  </h3>
+                  
+                  {/* Description Reveal Animation */}
+                  <div className="grid grid-rows-[0fr] group-hover:grid-rows-[1fr] transition-all duration-500 ease-in-out text-white/80 group-hover:text-white">
+                    <div className="overflow-hidden">
+                      <p className="text-sm md:text-base font-medium leading-relaxed pb-6 lg:pb-8">
+                        {pillar.desc}
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Card 2: Dental */}
-          <div className="group relative cursor-pointer md:-translate-y-12">
-             <div className="relative overflow-hidden aspect-[4/5] md:aspect-[16/9] lg:aspect-[2/1] bg-gray-100">
-                <img 
-                  src="./imgtwo.JPG" 
-                  alt="Dental" 
-                  // Added object-top here
-                  className="w-full h-full object-cover object-top grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700 ease-in-out" 
-                />
-                <div className="absolute top-4 left-4 text-xs font-bold text-white mix-blend-difference z-10">02 — AESTHETICS</div>
-             </div>
-             
-             <div className="pt-6 flex justify-between items-start border-t border-black mt-4">
-               <div>
-                  <h3 className="text-2xl font-bold mb-2 group-hover:translate-x-2 transition-transform duration-300">Cosmetic Dentistry</h3>
-                  <p className="text-sm text-gray-500 max-w-xs">Smile makeovers using premium porcelain veneers.</p>
-               </div>
-               <ArrowRight className="w-6 h-6 -rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-             </div>
-          </div>
+                  {/* Sharp Divider & Explore Button */}
+                  <div className="pt-6 border-t border-white/20 flex items-center justify-between text-white/70 group-hover:text-white transition-colors duration-300">
+                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em]">
+                      Explore Standard
+                    </span>
+                    <ArrowRight className="w-5 h-5 md:w-6 md:h-6 transform group-hover:translate-x-2 transition-transform duration-300" />
+                  </div>
+                </div>
 
-        </div>
+              </div>
+
+            </motion.div>
+          ))}
+        </motion.div>
 
       </div>
     </section>
