@@ -14,5 +14,9 @@ export default defineConfig({
     hmr: {
       clientPort: 443 
     }
+  },
+  // Add the build configuration here to adjust the chunk size limit
+  build: {
+    chunkSizeWarningLimit: 1000, // Increases the warning threshold to 1MB
   }
 });
