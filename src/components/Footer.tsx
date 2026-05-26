@@ -61,13 +61,13 @@ export function Footer() {
               <li><a href="tel:+919799636757" className="hover:text-black transition-colors whitespace-nowrap">+91 9799636757</a></li>
               <li>
                  <div className="flex gap-3 mt-4">
-                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300">
+                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all duration-300">
                     <Facebook className="w-4 h-4" />
                   </a>
-                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300">
+                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all duration-300">
                     <Instagram className="w-4 h-4" />
                   </a>
-                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-black hover:text-white transition-all duration-300">
+                  <a href="#" className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all duration-300">
                     <Linkedin className="w-4 h-4" />
                   </a>
                 </div>

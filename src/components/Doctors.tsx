@@ -125,7 +125,7 @@ export function Doctors() {
                     key={index}
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={() => setActiveIndex(index)}
-                    className={`group flex items-center justify-between px-8 md:px-12 py-6 cursor-pointer transition-all duration-500 ${isActive ? 'bg-black text-white' : 'hover:bg-gray-50 text-black'}`}
+                    className={`group flex items-center justify-between px-8 md:px-12 py-6 cursor-pointer transition-all duration-500 ${isActive ? 'bg-brand-blue text-white' : 'hover:bg-blue-50 text-black'}`}
                   >
                     {/* Left: Index & Name */}
                     <div className="flex items-center gap-6 md:gap-12">
@@ -158,9 +158,9 @@ export function Doctors() {
                 <ArrowRight className="w-4 h-4 text-gray-400" />
               </button>
 
-              <button className="group flex items-center justify-center gap-3 py-6 md:py-8 bg-white hover:bg-black transition-colors duration-500">
-                <Calendar className="w-4 h-4 text-black group-hover:text-white transition-colors duration-500" />
-                <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-black group-hover:text-white transition-colors duration-500">
+              <button className="group flex items-center justify-center gap-3 py-6 md:py-8 bg-white hover:bg-brand-blue transition-colors duration-500">
+                <Calendar className="w-4 h-4 text-brand-blue group-hover:text-white transition-colors duration-500" />
+                <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-brand-blue group-hover:text-white transition-colors duration-500">
                   Book Consultation
                 </span>
               </button>

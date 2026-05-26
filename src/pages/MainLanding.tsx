@@ -9,6 +9,7 @@ import {Testimonials} from '../components/Testimonials';
 import FAQ from '../components/FAQ';
 import Blogs from '../components/Blogs';
 import FounderMessage from '../components/FounderMessage';
+import { PartnerMarquee } from '../components/PartnerMarquee';
 
 // --- NEW COMPONENTS (Create these files below) ---
 import HeroTwo from '../components/HeroTwo';
@@ -33,6 +34,7 @@ export default function MediVoyageLanding() {
       {/* 4. Steps / Slider Section */}
       
       <PatientJourney/>
+      <PartnerMarquee/>
         {/* 4. Founder Message Section */}
         <FounderMessage/>
 

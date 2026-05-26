@@ -34,7 +34,7 @@ export function Hero() {
         
         {/* 'INTRODUCING' TAG */}
         <span 
-          className="inline-block mb-6 text-sm md:text-base font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-violet-500 to-indigo-500 opacity-0 animate-fade-in-up"
+          className="inline-block mb-6 text-sm md:text-base font-bold tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-brand-blue via-brand-teal to-brand-blue opacity-0 animate-fade-in-up"
           style={{ animationDelay: '0s' }}
         >
           Introducing
@@ -50,7 +50,7 @@ export function Hero() {
           <br className="hidden md:block" /> 
           
           {/* Animated Gradient Text */}
-          <span className="animate-text-shimmer bg-[linear-gradient(110deg,#9ca3af,45%,#000,55%,#9ca3af)] bg-[length:250%_100%] bg-clip-text text-transparent ml-2 md:ml-0">
+          <span className="animate-text-shimmer bg-[linear-gradient(110deg,#1ed8ca,45%,#1a7be2,55%,#1ed8ca)] bg-[length:250%_100%] bg-clip-text text-transparent ml-2 md:ml-0">
              Medical Travel Portal.
           </span>
         </h1>
@@ -76,7 +76,7 @@ export function Hero() {
           <a 
             href="#inquiry-form"
             onClick={scrollToForm}
-            className="group relative px-8 py-3.5 bg-black text-white rounded-sm font-bold text-base transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_-5px_rgba(0,0,0,0.3)] flex items-center gap-2 overflow-hidden cursor-pointer"
+            className="group relative px-8 py-3.5 bg-brand-blue text-white rounded-sm font-bold text-base transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_25px_-5px_rgba(26,123,226,0.5)] flex items-center gap-2 overflow-hidden cursor-pointer"
           >
             <span className="relative z-10">Get Free Consultation</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 relative z-10" />
@@ -128,7 +128,7 @@ export function Hero() {
         @keyframes shine {
           100% { transform: translateX(100%); }
         }
-        .group:hover .group-hover\:animate-shine {
+        .group:hover .group-hover\\:animate-shine {
           animation: shine 0.7s;
         }
       `}</style>

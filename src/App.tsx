@@ -1,114 +1,174 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { PatientJourney } from './components/PatientJourney';
+import { PartnerMarquee } from './components/PartnerMarquee';
 import { Features } from './components/Features';
-import { GlobalNetwork } from './components/GlobalNetwork'; // <-- NEW IMPORT
+import { GlobalNetwork } from './components/GlobalNetwork';
 import { Doctors } from './components/Doctors';
 import { Testimonials } from './components/Testimonials';
-import { FaqSection } from './components/FAQ'; // <-- NEW IMPORT
-import { BottomInquiry } from './components/BottomInquiry'; 
+import { FaqSection } from './components/FAQ';
+import { BottomInquiry } from './components/BottomInquiry';
 import { Footer } from './components/Footer';
 import { StickyCTA } from './components/StickyCTA';
 import { PopupForm } from './components/PopupForm';
 import Treatment from './components/Treatment';
 import AboutUs from './components/AboutUs';
 import Wellness from './components/Wellness';
+import MediVoyageAI from './pages/MediVoyageAI';
+import AuthPage from './pages/AuthPage';
+import PaymentPage from './pages/PaymentPage';
+import { AICta } from './components/AICta';
+import HonestSecondOpinion from './pages/HonestSecondOpinion';
+import TravelPlanner from './pages/TravelPlanner';
+import DoctorsBooking from './pages/DoctorsBooking';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import './index.css';
 
+type View = 'home' | 'treatments' | 'about' | 'wellness' | 'ai' | 'login' | 'payment' | 'second-opinion' | 'travel' | 'doctors';
 
-function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'treatments' | 'about' | 'wellness'>('home');
+function AppInner() {
+  const { user, loading, hasAccess, signOut } = useAuth();
+  const [currentView, setCurrentView] = useState<View>('home');
+  // Track why the user entered the login flow so we know where to send them after
+  const [loginContext, setLoginContext] = useState<'upgrade' | 'general'>('general');
 
-  // --- NAVIGATION FUNCTIONS ---
-  const navigateToHome = () => {
+  const nav = (view: View) => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    setCurrentView('home');
+    setCurrentView(view);
   };
 
-  const navigateToTreatments = () => {
+  // AI page is now open to everyone — no login required
+  const navigateToAI = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    setCurrentView('treatments');
+    setCurrentView('ai');
   };
 
-  const navigateToAbout = () => {
+  // Called from within the AI page when the user clicks an upgrade CTA
+  const navigateToUpgrade = () => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    setCurrentView('about');
+    if (!user) {
+      setLoginContext('upgrade');
+      setCurrentView('login');
+    } else {
+      setCurrentView('payment');
+    }
   };
 
-  const navigateToWellness = () => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    setCurrentView('wellness');
+  const navProps = {
+    onHomeClick:            () => nav('home'),
+    onTreatmentClick:       () => nav('treatments'),
+    onAboutClick:           () => nav('about'),
+    onWellnessClick:        () => nav('wellness'),
+    onAIClick:              navigateToAI,
+    onSecondOpinionClick:   () => nav('second-opinion'),
+    onTravelClick:          () => nav('travel'),
+    onDoctorsClick:         () => nav('doctors'),
+    onSignOutClick:         user ? signOut : undefined,
+    onLoginClick:           !user ? () => { setLoginContext('general'); nav('login'); } : undefined,
+    userEmail:              user?.email,
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 rounded-full border-2 border-brand-blue border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white"> 
-      
-      {/* HOME VIEW */}
+    <div className="min-h-screen bg-white">
+
+      {/* HOME */}
       {currentView === 'home' && (
         <>
-          <Navbar 
-            onHomeClick={navigateToHome}
-            onTreatmentClick={navigateToTreatments} 
-            onAboutClick={navigateToAbout}
-            onWellnessClick={navigateToWellness}
-          />
-          <PopupForm /> 
-          
-          {/* --- THE EDITORIAL FLOW --- */}
+          <Navbar {...navProps} />
+          <PopupForm />
           <Hero />
           <PatientJourney />
-          <Features />
-          
-          <GlobalNetwork /> {/* 1. Builds desire for the destinations */}
-          <Doctors />       {/* 2. Proves clinical authority */}
-          <Testimonials />  {/* 3. Provides social proof */}
-          <FaqSection />    {/* 4. Eliminates logistical anxiety */}
-          
-          <BottomInquiry /> 
+          <PartnerMarquee />
+          {/* <Features /> */}
+          {/* <GlobalNetwork /> */}
+          {/* <Doctors /> */}
+          <Testimonials />
+          <FaqSection />
+          <AICta onAIClick={navigateToAI} />
+          <BottomInquiry />
           <Footer />
           <StickyCTA />
         </>
       )}
 
-      {/* TREATMENTS VIEW */}
+      {/* TREATMENTS */}
       {currentView === 'treatments' && (
-        <Treatment 
-          onHomeClick={navigateToHome}
-          onTreatmentClick={navigateToTreatments}
-          onAboutClick={navigateToAbout}
-          onWellnessClick={navigateToWellness}
-        />
+        <Treatment {...navProps} />
       )}
 
-      {/* ABOUT VIEW */}
+      {/* ABOUT */}
       {currentView === 'about' && (
-        <AboutUs 
-          onHomeClick={navigateToHome}
-          onTreatmentClick={navigateToTreatments}
-          onAboutClick={navigateToAbout}
-          onWellnessClick={navigateToWellness}
-        />
+        <AboutUs {...navProps} />
       )}
 
-      {/* WELLNESS VIEW */}
+      {/* WELLNESS */}
       {currentView === 'wellness' && (
         <>
-          <Navbar 
-            onHomeClick={navigateToHome}
-            onTreatmentClick={navigateToTreatments} 
-            onAboutClick={navigateToAbout}
-            onWellnessClick={navigateToWellness}
-          />
+          <Navbar {...navProps} />
           <Wellness />
-          <BottomInquiry /> 
+          <BottomInquiry />
           <Footer />
           <StickyCTA />
         </>
+      )}
+
+      {/* LOGIN */}
+      {currentView === 'login' && (
+        <AuthPage
+          onSuccess={() => {
+            if (hasAccess) { nav('ai'); }
+            else if (loginContext === 'upgrade') { nav('payment'); }
+            else { nav('home'); }
+          }}
+          onHomeClick={() => nav('home')}
+        />
+      )}
+
+      {/* PAYMENT — shown after login but before paying */}
+      {currentView === 'payment' && (
+        <PaymentPage
+          onSuccess={() => nav('ai')}
+          onHomeClick={() => nav('home')}
+        />
+      )}
+
+      {/* MEDIVOYAGE AI — open to all; upgrade unlocks premium features */}
+      {currentView === 'ai' && (
+        <MediVoyageAI {...navProps} onUpgradeClick={navigateToUpgrade} />
+      )}
+
+      {/* HONEST SECOND OPINION */}
+      {currentView === 'second-opinion' && (
+        <HonestSecondOpinion {...navProps} />
+      )}
+
+      {/* TRAVEL PLANNER */}
+      {currentView === 'travel' && (
+        <TravelPlanner {...navProps} />
+      )}
+
+      {/* DOCTORS BOOKING */}
+      {currentView === 'doctors' && (
+        <DoctorsBooking {...navProps} />
       )}
 
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
+  );
+}

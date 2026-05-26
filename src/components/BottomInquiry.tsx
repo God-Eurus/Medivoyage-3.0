@@ -87,7 +87,7 @@ export function BottomInquiry() {
                   </div>
 
                   {/* Submit Button */}
-                  <button className="group w-full bg-black text-white font-bold py-4 shadow-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2 mt-4">
+                  <button className="group w-full bg-brand-blue text-white font-bold py-4 shadow-lg hover:bg-[#1565c0] transition-all flex items-center justify-center gap-2 mt-4">
                     <span className="uppercase tracking-widest text-xs">Send Request</span>
                     <Send className="w-3.5 h-3.5 text-white group-hover:translate-x-1 transition-transform" />
                   </button>

@@ -30,12 +30,12 @@ export function StickyCTA() {
           aria-label="Chat on WhatsApp"
         >
           {/* Label (Sharp box) */}
-          <span className="absolute right-16 bg-black text-white px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 font-medium text-xs whitespace-nowrap border border-white/20 tracking-wide pointer-events-none">
+          <span className="absolute right-16 bg-brand-navy text-white px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 font-medium text-xs whitespace-nowrap border border-white/20 tracking-wide pointer-events-none">
             Chat with Concierge
           </span>
-          
+
           {/* Button Square */}
-          <div className="w-12 h-12 bg-black border border-white/20 text-white shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-white hover:text-black hover:border-white">
+          <div className="w-12 h-12 bg-brand-navy border border-white/20 text-white shadow-lg flex items-center justify-center transition-all duration-300 hover:bg-brand-blue hover:border-brand-blue">
             <MessageCircle className="w-5 h-5" />
           </div>
         </button>
@@ -57,7 +57,7 @@ export function StickyCTA() {
       </div>
 
       {/* MOBILE: Sticky Bottom Bar (Dark Glass & Sharp) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 z-50 md:hidden pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 bg-brand-navy/90 backdrop-blur-xl border-t border-white/10 z-50 md:hidden pb-safe">
         <div className="px-4 py-4 flex gap-3">
           
           {/* Secondary: WhatsApp */}

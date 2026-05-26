@@ -1,19 +1,27 @@
 import React from 'react';
-import { Shield, Globe, Users, Building2, ArrowRight, Award } from 'lucide-react';
+import { Shield, Globe, Building2, Award } from 'lucide-react';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { StickyCTA } from './StickyCTA';
 import { BottomInquiry } from './BottomInquiry';
 
-// 1. Define Interface for Navigation Props
+// 1. Define Interface for Navigation Props (accepts the full nav set)
 interface AboutUsProps {
   onHomeClick?: () => void;
   onTreatmentClick?: () => void;
   onAboutClick?: () => void;
+  onWellnessClick?: () => void;
+  onAIClick?: () => void;
+  onSecondOpinionClick?: () => void;
+  onTravelClick?: () => void;
+  onDoctorsClick?: () => void;
+  onSignOutClick?: () => void;
+  onLoginClick?: () => void;
+  userEmail?: string;
 }
 
-// 2. Accept Props in Component
-export default function AboutUs({ onHomeClick, onTreatmentClick, onAboutClick }: AboutUsProps) {
+// 2. Accept Props in Component — spread to Navbar so every nav item works
+export default function AboutUs(props: AboutUsProps) {
   
   const partners = [
     { name: "Apollo Hospitals", location: "India", accreditation: "JCI Accredited" },
@@ -35,11 +43,7 @@ export default function AboutUs({ onHomeClick, onTreatmentClick, onAboutClick }:
     <div className="min-h-screen flex flex-col font-manrope bg-white text-black selection:bg-black selection:text-white">
       
       {/* 3. Pass Navigation Props to Navbar */}
-      <Navbar 
-        onHomeClick={onHomeClick} 
-        onTreatmentClick={onTreatmentClick} 
-        onAboutClick={onAboutClick} 
-      />
+      <Navbar {...props} />
       
       <div className="flex-grow pt-24 md:pt-32">
           

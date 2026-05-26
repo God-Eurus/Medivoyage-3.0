@@ -44,7 +44,7 @@ export function GlobalNetwork() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <section className="py-24 md:py-40 bg-black text-white font-manrope overflow-hidden selection:bg-white selection:text-black">
+    <section className="py-24 md:py-40 bg-brand-navy text-white font-manrope overflow-hidden selection:bg-white selection:text-brand-navy">
       <div className="max-w-[90rem] mx-auto px-4 sm:px-8 lg:px-16 flex flex-col lg:flex-row gap-16 lg:gap-24">
         
         {/* --- LEFT SIDE: HEADER & INTERACTIVE LIST --- */}
@@ -105,7 +105,7 @@ export function GlobalNetwork() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="relative w-full aspect-[16/9] bg-[#0a0a0a] border border-white/5 rounded-sm overflow-hidden flex items-center justify-center"
+            className="relative w-full aspect-[16/9] bg-brand-navy2 border border-white/5 rounded-sm overflow-hidden flex items-center justify-center"
           >
             {/* Subtle Grid Background */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
