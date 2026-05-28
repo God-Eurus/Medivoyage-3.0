@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Shield, CheckCircle2, ArrowRight, ArrowLeft, EyeOff, Stethoscope,
   RefreshCw, Zap, Sparkles, Check,
-  ClipboardList, Globe, Plus, Plane, MapPin, User,
+  ClipboardList, Globe, Plus, Plane, MapPin, User, CheckCircle, Mic, Phone, Video, Wifi, Battery
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
-import Orb from '../components/Orb';
+import { MeshGradient } from '@paper-design/shaders-react';
 import { useAuth } from '../context/AuthContext';
+import { motion,AnimatePresence } from "framer-motion";
 
 interface NavProps {
   onHomeClick?: () => void;
@@ -100,42 +101,42 @@ const primaryCareCards = [
     title: 'Preparing for a doctor visit',
     chip: 'Summarize my health history for my doctor',
     desc: "Generate questions or get up to speed on your health before you step into your doctor's office.",
-    img: 'https://images.unsplash.com/photo-1581952976147-5a2d15560349?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1589279003513-467d320f47eb?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8ZG9jdG9yJTIwdmlzaXR8ZW58MHwwfDB8fHwy',
     chipPos: 'top-5 right-4',
   },
   {
     title: 'Finding peace of mind',
     chip: 'I have a symptom, is it serious?',
     desc: 'Answer 2am health concerns or get quick access to medical answers in a pinch.',
-    img: 'https://images.unsplash.com/photo-1606060040726-faedb9c63462?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzN8fG1lZGl0YXRpb258ZW58MHwwfDB8fHwy',
     chipPos: 'top-5 left-1/2 -translate-x-1/2',
   },
   {
     title: 'Understanding a diagnosis',
     chip: 'What does this mean for my day-to-day life?',
     desc: 'No need to wait for office hours, speak to MediVoyage when you need answers for free.',
-    img: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1631217872822-1c2546d6b864?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dW5kZXJzdGFuZGluZyUyMGRpYWdub3Npc3xlbnwwfDB8MHx8fDI%3D',
     chipPos: 'top-12 right-4',
   },
   {
     title: 'Managing chronic illness',
     chip: 'Help me track my symptoms over time',
     desc: 'MediVoyage remembers you and your history, and is your partner on your journey.',
-    img: 'https://images.unsplash.com/photo-1581579438747-104c53e7c64a?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1758691462568-252f83aae3c8?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8bWFuYWdpbmclMjBpbGxuZXNzfGVufDB8MHwwfHx8Mg%3D%3D',
     chipPos: 'top-5 right-4',
   },
   {
     title: 'Navigating healthcare',
     chip: 'Refill my prescription',
     desc: 'Prescription refills, finding a specialist near you, or ordering a lab test — MediVoyage is here to help.',
-    img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1652787545245-5e39748cdf97?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fE5hdmlnYXRpbmclMjBoZWFsdGglMjBjYXJlfGVufDB8MHwwfHx8Mg%3D%3D',
     chipPos: 'top-5 left-4',
   },
   {
     title: 'Mental wellness check-ins',
     chip: 'I want to talk about how I\'ve been feeling',
     desc: 'Private, judgment-free conversations about stress, anxiety, sleep, and emotional health.',
-    img: 'https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1739285388427-d6f85d12a8fc?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDJ8fGhlYWx0aCUyMGNoZWNrdXB8ZW58MHwwfDB8fHwy',
     chipPos: 'top-5 right-4',
   },
 ];
@@ -252,6 +253,8 @@ function getResponse(query: string): string {
   }
   return "I can help with a wide range of health topics — symptoms, medications, conditions, nutrition, mental health, and medical tourism. Could you share a bit more detail? For example: \"I've had a headache for 2 days\" or \"My blood pressure was 145/92.\" ⚠️ For emergencies, always call your local emergency number.";
 }
+
+
 
 export default function MediVoyageAI({
   onHomeClick, onTreatmentClick, onAboutClick, onWellnessClick, onAIClick,
@@ -406,6 +409,14 @@ export default function MediVoyageAI({
     setFloatingInput('');
   };
 
+useEffect(() => {
+    const timer = setInterval(() => {
+      setQuoteIdx((prev) => (prev + 1) % doctorQuotes.length);
+    }, 5000); 
+    
+    return () => clearInterval(timer);
+  }, [doctorQuotes.length]);
+
   // ── MAIN AI PAGE (default render) ───────────────────────────────────────
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfdfc]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -429,831 +440,1088 @@ export default function MediVoyageAI({
       />
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-24 pb-12 overflow-hidden">
+    <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 overflow-hidden font-['Manrope',_sans-serif]">
 
-        {/* ── Free-floating Orb — positioned behind the chat area, no bounded container ── */}
-        <div
-          className="pointer-events-none absolute inset-x-0 flex justify-center"
-          style={{ top: '58%', transform: 'translateY(-30%)' }}
-          aria-hidden="true"
-        >
-          <div style={{ width: '640px', height: '640px', position: 'relative' }}>
-            <Orb hue={150} hoverIntensity={0.5} rotateOnHover backgroundColor="#fdfdfc" />
-          </div>
-        </div>
+  {/* ── Animated mesh-gradient shader background ── */}
+  <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <MeshGradient
+      width={1920}
+      height={1080}
+      colors={['#1a7be2', '#74b3f0', '#1ed8ca', '#aeefe7', '#fdf6e3', '#ffe5d4']}
+      distortion={0.9}
+      swirl={0.55}
+      grainMixer={0}
+      grainOverlay={0}
+      speed={0.35}
+      offsetX={0.1}
+      style={{ width: '100%', height: '100%' }}
+    />
+    <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px]" />
+  </div>
 
-        {/* Radial mask — fades the orb softly into the cream background on all sides */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 32% 30% at 50% 70%, transparent 0%, transparent 55%, #fdfdfc 92%)',
-          }}
-          aria-hidden="true"
-        />
+  {/* ── Main Expanded Wrapper ── */}
+  <div className="relative z-10 w-full max-w-[1100px] mx-auto flex flex-col items-center">
 
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
+    {/* Headline */}
+    <motion.h1 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="text-5xl md:text-6xl lg:text-[72px] font-medium tracking-tighter text-gray-900 leading-[1.05] mb-6"
+    >
+      The medical intelligence<br />
+      <span className="text-gray-400">always on call.</span>
+    </motion.h1>
 
-          {/* Headline */}
-          <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] text-gray-900 leading-[1.05] tracking-tight mb-6">
-            <em className="italic font-normal">The</em> medical intelligence<br />
-            that's <em className="italic font-normal">always</em> on call.
-          </h1>
+    <motion.p 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+      className="text-gray-500 text-base md:text-lg font-normal mb-12 max-w-xl mx-auto"
+    >
+      Chat free with our Medical AI anytime. Video chat a real physician for $9/visit.
+    </motion.p>
 
-          <p className="text-gray-700 text-sm md:text-base font-medium mb-10 max-w-2xl mx-auto">
-            Chat free with our Medical AI anytime. Video chat a real physician for $9/visit.
-          </p>
-
-          {/* Divider with "Built by experts from" */}
-          <div className="relative flex items-center justify-center w-full max-w-3xl mx-auto mb-6">
-            <div className="absolute w-full border-t border-dashed border-gray-300" />
-            <span className="relative bg-[#fdfdfc] px-4 font-playfair italic text-sm text-gray-600">
-              Built by experts from
-            </span>
-          </div>
-
-          {/* Partner logos — sit on top of the orb, always readable */}
-          <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 md:gap-x-10 mb-12">
-            <span className="font-serif text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" /> HARVARD
-              <span className="font-normal text-[9px] lowercase tracking-normal text-gray-600 ml-0.5">medical<br/>school</span>
-            </span>
-            <span className="font-sans text-lg md:text-xl font-extrabold text-gray-800 tracking-tighter">UCSF</span>
-            <span className="font-serif text-sm md:text-base font-bold text-[#002d72] flex items-center gap-1.5">
-              <span className="w-3.5 h-3.5 rounded-full border border-[#002d72] flex items-center justify-center"><span className="w-1.5 h-1.5 bg-[#002d72]" /></span>
-              JOHNS HOPKINS
-            </span>
-            <span className="font-serif text-base md:text-lg text-[#8C1515] tracking-tight italic">Stanford</span>
-            <span className="font-serif text-xs md:text-sm font-semibold text-[#011F5B]">Penn Medicine</span>
-            <span className="font-sans text-xs md:text-sm font-bold text-gray-800 leading-tight">
-              UChicago<br/>Medicine
-            </span>
-          </div>
-
-          {/* ── Chat area — no bounded container, content sits on the orb naturally ── */}
-          <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
-
-              {/* Messages list — only renders once conversation starts */}
-              {hasStarted && (
-                <div className="w-full mb-3 max-h-[340px] overflow-y-auto bg-white/85 backdrop-blur-md border border-gray-100 rounded-2xl shadow-sm p-4 space-y-3 text-left">
-                  {messages.map((msg, i) => (
-                    <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                      {msg.role === 'bot' && (
-                        <div className="w-7 h-7 rounded-full bg-[#d9f576] flex items-center justify-center shrink-0">
-                          <Stethoscope className="w-3.5 h-3.5 text-gray-800" />
-                        </div>
-                      )}
-                      <div className={`max-w-[80%] px-3.5 py-2 text-xs md:text-sm leading-relaxed rounded-2xl ${
-                        msg.role === 'user'
-                          ? 'bg-[#2563eb] text-white rounded-tr-sm'
-                          : 'bg-gray-50 text-gray-800 border border-gray-100 rounded-tl-sm'
-                      }`}>
-                        {msg.text}
-                      </div>
-                    </div>
-                  ))}
-
-                  {isTyping && (
-                    <div className="flex gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[#d9f576] flex items-center justify-center shrink-0">
-                        <Stethoscope className="w-3.5 h-3.5 text-gray-800" />
-                      </div>
-                      <div className="bg-gray-50 border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-2.5 flex gap-1.5 items-center">
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                    </div>
-                  )}
-
-                  <div ref={messagesEndRef} />
+    {/* ── Chat Area (Constrained width for readability) ── */}
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      className="flex flex-col items-center w-full max-w-3xl mx-auto"
+    >
+      {/* Messages list */}
+      {hasStarted && (
+        <div className="w-full mb-4 max-h-[400px] overflow-y-auto bg-white/70 backdrop-blur-xl border border-gray-200/60 rounded-3xl p-5 space-y-4 text-left shadow-sm">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              {msg.role === 'bot' && (
+                <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                  <Stethoscope className="w-4 h-4 text-[#1a7be2]" />
                 </div>
               )}
-
-              {/* "What brings you in?" lime pill — only shown before chat starts */}
-              {!hasStarted && (
-                <div className="self-start ml-4 md:ml-10 mb-2">
-                  <span className="bg-[#d9f576] text-gray-900 text-sm font-bold px-4 py-2 rounded-full shadow-sm block">
-                    What brings you in?
-                  </span>
-                </div>
-              )}
-
-              {/* Specialty quick-start chips — Doctronic-style topic entry points */}
-              {!hasStarted && (
-                <div className="w-full flex flex-wrap items-center justify-center gap-1.5 mb-3">
-                  {quickStartTopics.map((topic) => (
-                    <button
-                      key={topic.label}
-                      type="button"
-                      onClick={() => requestChat(topic.prompt)}
-                      className="text-[11px] font-semibold text-gray-700 bg-white/80 backdrop-blur-sm border border-gray-200 hover:border-gray-400 hover:bg-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
-                    >
-                      {topic.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Status row when chat is active — "Free · Unlimited" + Reset */}
-              {hasStarted && (
-                <div className="w-full flex items-center justify-between mb-2 px-2">
-                  <span className="bg-[#d9f576] text-gray-900 text-[11px] font-bold px-3 py-1 rounded-full shadow-sm">
-                    Free · Unlimited
-                  </span>
-                  <button
-                    onClick={resetChat}
-                    className="text-[11px] font-semibold text-gray-500 hover:text-gray-900 flex items-center gap-1.5 transition-colors"
-                  >
-                    <RefreshCw className="w-3 h-3" /> Reset
-                  </button>
-                </div>
-              )}
-
-              {/* Pill-shaped input form — always open, chat is fully free */}
-              <form
-                onSubmit={handleHeroSubmit}
-                className="w-full bg-white shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12)] rounded-full pl-6 pr-1.5 py-1.5 flex items-center border border-gray-100"
-              >
-                <input
-                  type="text"
-                  value={heroInput}
-                  onChange={(e) => setHeroInput(e.target.value)}
-                  placeholder={
-                    hasStarted
-                      ? 'Ask a follow-up…'
-                      : 'When should I go to urgent care for the flu?'
-                  }
-                  disabled={isTyping}
-                  className="flex-1 py-2.5 text-sm md:text-base text-gray-800 placeholder-gray-400 bg-transparent focus:outline-none disabled:opacity-60"
-                  autoComplete="off"
-                />
-                <button
-                  type="submit"
-                  disabled={!heroInput.trim() || isTyping}
-                  className="bg-[#2563eb] hover:bg-blue-700 text-white font-bold text-sm px-6 py-3 rounded-full flex items-center gap-2 transition-colors disabled:opacity-50 shadow-sm shrink-0"
-                >
-                  {hasStarted ? 'Send' : 'Get started'} <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              {/* Trust badges — icon chips */}
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-6">
-                {trustBadges.map(({ icon: Icon, label }) => (
-                  <span
-                    key={label}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-white border border-gray-200 px-3 py-1.5 rounded-full shadow-sm"
-                  >
-                    <Icon className="w-3.5 h-3.5 text-gray-700" />
-                    {label}
-                  </span>
-                ))}
+              <div className={`max-w-[85%] px-5 py-3 text-[14px] leading-relaxed ${
+                msg.role === 'user'
+                  // Updated to Brand Blue
+                  ? 'bg-[#1a7be2] text-white rounded-3xl rounded-tr-sm font-medium shadow-md shadow-[#1a7be2]/20'
+                  : 'bg-white text-gray-800 border border-gray-100 rounded-3xl rounded-tl-sm shadow-sm'
+              }`}>
+                {msg.text}
               </div>
-          </div>
+            </div>
+          ))}
+
+          {isTyping && (
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                <Stethoscope className="w-4 h-4 text-[#1a7be2]" />
+              </div>
+              <div className="bg-white border border-gray-100 rounded-3xl rounded-tl-sm px-5 py-4 flex gap-1.5 items-center shadow-sm">
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
-      </section>
+      )}
+
+      {/* Status row when chat is active */}
+      {hasStarted && (
+        <div className="w-full flex items-center justify-between mb-3 px-3">
+          <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">
+            Free · Unlimited
+          </span>
+          <button
+            onClick={resetChat}
+            className="text-[11px] font-bold text-gray-400 hover:text-gray-900 flex items-center gap-1.5 transition-colors uppercase tracking-wider"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Reset
+          </button>
+        </div>
+      )}
+
+      {/* Sleek Input Form */}
+      <form
+        onSubmit={handleHeroSubmit}
+        className="w-full bg-white/90 backdrop-blur-md rounded-full pl-6 pr-1.5 py-1.5 flex items-center border border-gray-200 shadow-sm focus-within:border-[#1a7be2]/40 focus-within:ring-4 focus-within:ring-[#1a7be2]/10 transition-all"
+      >
+        <input
+          type="text"
+          value={heroInput}
+          onChange={(e) => setHeroInput(e.target.value)}
+          placeholder={
+            hasStarted
+              ? 'Ask a follow-up…'
+              : 'What brings you in today?'
+          }
+          disabled={isTyping}
+          className="flex-1 py-3 text-sm md:text-base text-gray-900 placeholder-gray-400 bg-transparent focus:outline-none disabled:opacity-60"
+          autoComplete="off"
+        />
+        <button
+          type="submit"
+          disabled={!heroInput.trim() || isTyping}
+          // Updated to Brand Gradient
+          className="bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca] hover:opacity-90 text-white font-bold text-sm px-6 py-3.5 rounded-full flex items-center gap-2 transition-all disabled:opacity-50 shrink-0 shadow-md shadow-[#1a7be2]/20"
+        >
+          {hasStarted ? 'Send' : 'Start Chat'} <ArrowRight className="w-4 h-4" />
+        </button>
+      </form>
+
+      {/* Quick-start chips */}
+      {!hasStarted && (
+        <div className="w-full flex flex-wrap items-center justify-center gap-2 mt-6">
+          {quickStartTopics.map((topic) => (
+            <button
+              key={topic.label}
+              type="button"
+              onClick={() => requestChat(topic.prompt)}
+              // Added Brand Color to Hover State
+              className="text-[12px] font-medium text-gray-600 bg-white/60 backdrop-blur-sm border border-gray-200 hover:border-[#1a7be2] hover:text-[#1a7be2] px-4 py-2 rounded-full transition-all"
+            >
+              {topic.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Trust badges */}
+      <div className="flex flex-wrap items-center justify-center gap-5 mt-8 opacity-60">
+        {trustBadges.map(({ icon: Icon, label }) => (
+          <span
+            key={label}
+            className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.15em] text-gray-600"
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+
+    
+    {/* ── PREMIUM PLAN MARKETING — Dark Gradient Glass Card ── */}
+   
+
+  </div>
+</section>
 
       {/* ── BUILT BY PHYSICIANS ──────────────────────────────────────────── */}
-      <section className="bg-white py-24 md:py-28 px-6 border-t border-gray-100 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
+      <section className="bg-[#f8fafc] py-12 md:py-20 px-4 md:px-8 lg:px-10 font-['Manrope',_sans-serif] overflow-hidden">
+  <div className="max-w-[1280px] mx-auto">
 
-          {/* ── LEFT: copy + decorative elements ────────────────────────── */}
-          <div className="relative">
-            <p className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug max-w-md tracking-tight">
-              MediVoyage is built by physicians and trained on real medical evidence, pairing the best of AI and human expertise.
-            </p>
+    {/* ── Section Header (Cascading fade-up) ── */}
+    <motion.div 
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={{
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.15 } } 
+      }}
+      className="text-center max-w-4xl mx-auto mb-16 md:mb-24"
+    >
+      <motion.span 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } }}
+        className="text-[#1a7be2] text-[10px] font-bold uppercase tracking-[0.3em] block mb-4"
+      >
+        The MediVoyage Standard
+      </motion.span>
+      
+      {/* ── FIXED: Removed lg:whitespace-nowrap so it wraps naturally ── */}
+      <motion.h2 
+  variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } }}
+  className="text-4xl md:text-5xl lg:text-[56px] font-medium text-gray-900 leading-[1.05] tracking-tighter mb-8 w-full"
+>
+  Built by doctors.{" "}
+  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca]">
+    Powered by intelligence.
+  </span>
+</motion.h2>
+      
+      <motion.p 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } } }}
+        className="text-gray-500 text-[14px] md:text-[15px] font-medium leading-relaxed max-w-2xl mx-auto"
+      >
+        We pair the absolute best of artificial intelligence with board-certified human expertise, ensuring every recommendation is rooted in real, peer-reviewed medical science.
+      </motion.p>
+    </motion.div>
 
-            {/* Physician avatars + check */}
-            <div className="flex items-center gap-3 mt-12">
-              <div className="flex -space-x-3">
-                {[
-                  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=120&h=120&fit=crop&crop=faces&q=80',
-                  'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=120&h=120&fit=crop&crop=faces&q=80',
-                  'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=120&h=120&fit=crop&crop=faces&q=80',
-                  'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=120&h=120&fit=crop&crop=faces&q=80',
-                  'https://images.unsplash.com/photo-1580281657527-47f249e8f4df?w=120&h=120&fit=crop&crop=faces&q=80',
-                ].map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="w-12 h-12 rounded-full border-2 border-white object-cover shadow-sm"
-                  />
-                ))}
-              </div>
-              <div className="w-12 h-12 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm ml-1">
-                <Check className="w-4 h-4 text-gray-700" strokeWidth={2.5} />
-              </div>
-            </div>
+    {/* ── Bento Box Grid (Orchestrated Stagger) ── */}
+    <motion.div 
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-100px" }}
+      variants={{
+        hidden: {},
+        show: { transition: { staggerChildren: 0.15 } }
+      }}
+      className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5"
+    >
 
-            {/* Dashed connecting curve */}
-            <svg className="mt-8 ml-4 w-32 h-12" viewBox="0 0 120 50" fill="none" aria-hidden="true">
-              <path d="M 5,8 Q 50,55 115,30" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 4" strokeLinecap="round" />
-            </svg>
-
-            {/* Circular spinning badge */}
-            <div className="relative w-44 h-44 -mt-1">
-              <svg viewBox="0 0 200 200" className="w-full h-full animate-spin-slow">
-                <defs>
-                  <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#e9d5ff" />
-                    <stop offset="50%" stopColor="#fce7e7" />
-                    <stop offset="100%" stopColor="#d1fae5" />
-                  </linearGradient>
-                  <path
-                    id="circlePath"
-                    d="M 100,100 m -78,0 a 78,78 0 1,1 156,0 a 78,78 0 1,1 -156,0"
-                  />
-                </defs>
-                <circle cx="100" cy="100" r="95" fill="url(#ringGrad)" />
-                <circle cx="100" cy="100" r="63" fill="#ffffff" />
-                <text
-                  fontSize="11"
-                  fontWeight="700"
-                  letterSpacing="2.5"
-                  fill="#374151"
-                  style={{ fontFamily: 'system-ui, sans-serif' }}
-                >
-                  <textPath href="#circlePath" startOffset="0">
-                    AVAILABLE IN ALL 50 STATES + DC ✦ BOARD-CERTIFIED PHYSICIAN ✦
-                  </textPath>
-                </text>
-              </svg>
-
-              {/* Center icon — person + heart */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <svg
-                  className="w-10 h-10"
-                  viewBox="0 0 36 36"
-                  fill="none"
-                  stroke="#1f2937"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="14" cy="13" r="3.5" />
-                  <path d="M 7.5,24 c 0,-3 3,-5 6.5,-5 c 3.5,0 6.5,2 6.5,5" />
-                  <path
-                    d="M 25,17 c -0.9,-0.9 -2.5,-0.3 -2.5,1 c 0,1 1.25,2.1 2.5,3 c 1.25,-0.9 2.5,-2 2.5,-3 c 0,-1.3 -1.6,-1.9 -2.5,-1 z"
-                    fill="#1f2937"
-                  />
-                </svg>
-              </div>
-            </div>
+      {/* 1. TALL LEFT CARD: The Medical Brain (Dark Mode) */}
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 40, scale: 0.98 },
+          show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+        }}
+        whileHover={{ y: -6, transition: { duration: 0.3, ease: "easeOut" } }}
+        className="md:col-span-1 md:row-span-2 relative bg-[#09090b] rounded-[12px] p-5 md:p-6 overflow-hidden flex flex-col justify-between min-h-[380px] md:min-h-[420px] border border-gray-800 shadow-xl group"
+      >
+        {/* Ambient glows that intensify on hover */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-[#1a7be2] rounded-full blur-[100px] opacity-20 group-hover:opacity-50 transition-opacity duration-700 pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="w-10 h-10 rounded-[8px] bg-white/10 border border-white/20 flex items-center justify-center mb-5 backdrop-blur-md transition-transform duration-500 group-hover:scale-110">
+            <Sparkles className="w-4 h-4 text-[#1ed8ca]" />
           </div>
-
-          {/* ── RIGHT: physician photo with overlapping patient card ────── */}
-          <div className="relative">
-            {/* Main physician photo */}
-            <div className="rounded-3xl overflow-hidden shadow-xl shadow-gray-200/60">
-              <img
-                src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=900&q=80"
-                alt="Physician on a teleconsultation call"
-                className="w-full aspect-[4/3] object-cover"
-              />
-            </div>
-
-            {/* Overlapping patient photo */}
-            <div className="absolute -bottom-10 -left-6 sm:-left-12 lg:-left-16 w-40 sm:w-48 lg:w-52 rounded-2xl overflow-hidden shadow-2xl border-[5px] border-white">
-              <img
-                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80"
-                alt="Patient on a video call from home"
-                className="w-full aspect-[3/4] object-cover"
-              />
-            </div>
-          </div>
-
+          <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-3 leading-snug">
+            Evidence-Based AI
+          </h3>
+          <p className="text-gray-400 text-[13px] leading-relaxed font-light">
+            Our medical engine doesn't hallucinate. It is strictly trained on millions of peer-reviewed journals, global clinical guidelines, and real-world medical evidence to provide safe, accurate triage.
+          </p>
         </div>
 
-        {/* Slow-spin animation keyframe */}
-        <style>{`
-          @keyframes spin-slow { to { transform: rotate(360deg); } }
-          .animate-spin-slow { animation: spin-slow 22s linear infinite; transform-origin: center; }
-        `}</style>
-      </section>
+        {/* Fluid AI Processing Animation */}
+        <div className="relative z-10 mt-8 pt-6 border-t border-white/10 h-16 flex items-end justify-between gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity duration-500">
+          {[35, 60, 40, 85, 55, 100, 65, 90, 45, 75].map((height, i) => (
+            <motion.div 
+              key={i}
+              animate={{ height: [`${height}%`, `${Math.max(15, height - 30)}%`, `${height}%`] }}
+              transition={{ duration: 2.5 + (i * 0.15), repeat: Infinity, ease: "easeInOut" }}
+              className="flex-1 bg-gradient-to-t from-[#1a7be2] to-[#1ed8ca] rounded-t-[2px] opacity-80"
+            />
+          ))}
+        </div>
+      </motion.div>
+
+      {/* 2. WIDE TOP RIGHT CARD: Human Network (Image Focused) */}
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 40, scale: 0.98 },
+          show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+        }}
+        whileHover={{ y: -6, transition: { duration: 0.3, ease: "easeOut" } }}
+        className="md:col-span-2 relative bg-gray-900 rounded-[12px] overflow-hidden min-h-[260px] md:min-h-[280px] shadow-sm group"
+      >
+        <img
+          src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=1200"
+          alt="Doctors collaborating"
+          className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-[1.5s] ease-out opacity-80"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#09090b]/95 via-[#09090b]/60 to-transparent" />
+        
+        <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-center max-w-sm">
+          <div className="w-fit bg-white/10 backdrop-blur-md border border-white/10 text-white px-3 py-1.5 rounded-[6px] text-[9px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2 transition-transform duration-500 group-hover:translate-x-1">
+            <CheckCircle className="w-3 h-3 text-[#1ed8ca]" /> Human Verified
+          </div>
+          <h3 className="text-xl md:text-2xl font-bold text-white tracking-tight mb-3 leading-snug">
+            Board-Certified Network
+          </h3>
+          <p className="text-gray-300 text-[13px] leading-relaxed font-light">
+            AI is powerful, but humans are irreplaceable. Every complex case can be instantly escalated to licensed physicians across all 50 states.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* 3. BOTTOM MIDDLE CARD: Security (Clean White) */}
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 40, scale: 0.98 },
+          show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+        }}
+        whileHover={{ y: -6, transition: { duration: 0.3, ease: "easeOut" } }}
+        className="md:col-span-1 bg-white rounded-[12px] p-5 md:p-6 border border-gray-200 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-shadow duration-300"
+      >
+        <div>
+          <div className="w-10 h-10 rounded-[8px] bg-gray-50 border border-gray-100 flex items-center justify-center mb-5 transition-all duration-500 group-hover:bg-[#1a7be2]/5 group-hover:border-[#1a7be2]/20 group-hover:scale-110">
+            <Shield className="w-4 h-4 text-gray-700 group-hover:text-[#1a7be2] transition-colors duration-500" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">
+            Bank-Level Privacy
+          </h3>
+          <p className="text-gray-500 text-[13px] leading-relaxed font-medium">
+            100% HIPAA compliant. Your health data is encrypted end-to-end and strictly confidential. It never leaves the vault.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* 4. BOTTOM RIGHT CARD: Speed (Clean White) */}
+      <motion.div 
+        variants={{
+          hidden: { opacity: 0, y: 40, scale: 0.98 },
+          show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+        }}
+        whileHover={{ y: -6, transition: { duration: 0.3, ease: "easeOut" } }}
+        className="md:col-span-1 bg-white rounded-[12px] p-5 md:p-6 border border-gray-200 shadow-sm flex flex-col justify-between group hover:shadow-lg transition-shadow duration-300"
+      >
+        <div>
+          <div className="w-10 h-10 rounded-[8px] bg-[#1a7be2]/5 border border-[#1a7be2]/10 flex items-center justify-center mb-5 transition-transform duration-500 group-hover:scale-110">
+            <Zap className="w-4 h-4 text-[#1a7be2]" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight mb-2">
+            Zero Wait Times
+          </h3>
+          <p className="text-gray-500 text-[13px] leading-relaxed font-medium">
+            World-class medical intelligence and concierge care, available to you 24/7 without the waiting room.
+          </p>
+        </div>
+      </motion.div>
+
+    </motion.div>
+  </div>
+</section>
 
       {/* ── AI + HUMAN DOCTORS ───────────────────────────────────────────── */}
-      <section className="bg-[#e8f5e3] py-24 md:py-28 px-6 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <section className="bg-white py-20 md:py-32 px-6 md:px-12 lg:px-16 font-['Manrope',_sans-serif] overflow-hidden">
+  <div className="max-w-[1360px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-center">
 
-          {/* ── LEFT: copy ──────────────────────────────────────────────── */}
-          <div className="space-y-7 max-w-md">
-            <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold text-gray-900 leading-[1.15] tracking-tight">
-              Intelligent AI for quick, accurate responses.{' '}
-              <span className="text-[#2563eb]">Human doctors</span> when you need them
-            </h2>
+    {/* ── LEFT: Ultra-Minimalist Editorial Typography ── */}
+    <motion.div 
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-50px" }}
+      variants={{
+        hidden: { opacity: 0 },
+        show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+      }}
+      className="lg:col-span-5 xl:col-span-4 flex flex-col items-start"
+    >
+      <motion.p 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+        className="text-[#1a7be2] text-[10px] font-bold uppercase tracking-[0.25em] mb-6"
+      >
+        Seamless Transition
+      </motion.p>
 
-            <div className="border-t border-dashed border-gray-400/70 max-w-xs" />
+      <motion.h2 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+        className="text-4xl md:text-5xl lg:text-[56px] font-medium text-gray-900 leading-[1.05] tracking-tighter mb-8"
+      >
+        Intelligent AI.<br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca]">
+          Human doctors.
+        </span>
+      </motion.h2>
 
-            <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-              By the time you meet one of our doctors, they already know your history, your symptoms, and what you need. Less time explaining. More time getting better. Or take everything to your preferred in-person doctor for a more efficient appointment.
-            </p>
+      <motion.p 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+        className="text-gray-500 text-[15px] md:text-base leading-relaxed font-light mb-12 max-w-md"
+      >
+        By the time you meet one of our doctors, they already know your history, your symptoms, and exactly what you need. Less time explaining. More time getting better.
+      </motion.p>
 
-            <p className="text-sm md:text-base text-gray-900 font-medium pt-2">
-              Video visits with real doctors for{' '}
-              <span className="text-[#2563eb] font-bold">$39/visit</span>
-            </p>
-          </div>
-
-          {/* ── RIGHT: phone + supporting photos + floating chips ───────── */}
-          <div className="relative h-[560px] md:h-[600px] w-full">
-
-            {/* Background photo — man with beanie, left of phone */}
-            <div className="absolute left-0 sm:left-4 top-20 w-36 sm:w-44 h-52 sm:h-60 rounded-2xl overflow-hidden shadow-xl -rotate-[5deg] z-0">
-              <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80"
-                alt=""
-                className="w-full h-full object-cover"
-              />
+      {/* Animated Typographic Feature List */}
+      <motion.div 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+        className="w-full border-t border-gray-200 pt-8 space-y-2 mb-12"
+      >
+        {[
+          { num: "01", title: "Board-certified network", desc: "Licensed human physicians ready to take over." },
+          { num: "02", title: "AI-assisted handoff", desc: "Your entire triage summary is instantly shared." },
+          { num: "03", title: "Nationwide coverage", desc: "Available across all 50 states + DC." }
+        ].map((feature, idx) => (
+          <motion.div 
+            key={idx}
+            whileHover={{ x: 8, backgroundColor: "rgba(249, 250, 251, 1)" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex gap-6 items-start p-4 -ml-4 rounded-xl cursor-default"
+          >
+            <span className="text-gray-300 font-medium text-sm tracking-wider mt-0.5">{feature.num}</span>
+            <div>
+              <h4 className="text-gray-900 font-medium text-base mb-1">{feature.title}</h4>
+              <p className="text-gray-500 text-sm font-light">{feature.desc}</p>
             </div>
+          </motion.div>
+        ))}
+      </motion.div>
 
-            {/* Background photo — woman on yellow chair, right of phone */}
-            <div className="absolute right-0 sm:right-4 top-6 w-36 sm:w-44 h-52 sm:h-60 rounded-2xl overflow-hidden shadow-xl rotate-[5deg] z-0">
-              <img
-                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=80"
-                alt=""
+      {/* Minimalist Pricing Lockup */}
+      <motion.div 
+        variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+        className="flex items-baseline gap-3 px-4 md:px-0"
+      >
+        <span className="text-4xl font-medium text-gray-900 tracking-tight">$9</span>
+        <span className="text-gray-500 text-sm font-medium tracking-wide">/ flat rate video visit</span>
+      </motion.div>
+    </motion.div>
+
+    {/* ── RIGHT: Animated Laptop Mockup with Live Video ── */}
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95, y: 30 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      className="lg:col-span-7 xl:col-span-8 relative w-full pt-10 lg:pt-0"
+    >
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[120%] bg-gradient-to-br from-gray-50 to-gray-100 rounded-[60px] -z-10" />
+
+      {/* Floating Typographic Handoff Element */}
+      <motion.div 
+        initial={{ opacity: 0, x: -30, scale: 0.9 }}
+        whileInView={{ opacity: 1, x: 0, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.7 }}
+        className="absolute -top-6 left-4 lg:left-10 z-30 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-[8px] py-3 px-5 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.12)]"
+      >
+        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#1a7be2] mb-1">AI Handoff</p>
+        <p className="text-[13px] font-medium text-gray-900">Notes securely sent to Doctor</p>
+      </motion.div>
+
+      {/* Laptop Frame with Continuous Float */}
+      <motion.div 
+        animate={{ y: [0, -12, 0] }}
+        transition={{ repeat: Infinity, duration: 7, ease: "easeInOut" }}
+        className="relative w-full max-w-3xl mx-auto z-20"
+      >
+        
+        <div className="relative bg-[#111111] p-2 md:p-3 rounded-t-[20px] md:rounded-t-[28px] rounded-b-none border border-gray-800 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
+          
+          <div className="absolute top-1.5 md:top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black rounded-full z-30" />
+
+          {/* Screen Display */}
+          <div className="relative bg-black rounded-[10px] md:rounded-[16px] overflow-hidden aspect-[16/10]">
+            
+            {/* ── DOCTOR LIVE VIDEO INTEGRATION ── */}
+            <motion.div
+              initial={{ scale: 1.05 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
                 className="w-full h-full object-cover"
-              />
-            </div>
+              >
+                {/* Your provided Pexels Doctor Video */}
+                <source src="/stock.mp4" type="video/mp4" />
+              </video>
+            </motion.div>
 
-            {/* ── iPhone mockup ─────────────────────────────────────────── */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[260px] md:w-[280px] z-10">
-              <div className="relative bg-gray-900 rounded-[44px] p-2 shadow-2xl shadow-gray-400/40">
-                <div className="relative bg-gray-200 rounded-[36px] overflow-hidden aspect-[9/19.5]">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
 
-                  {/* Physician on call (background image) */}
-                  <img
-                    src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&q=80"
-                    alt="Dr. Willow Crest on video call"
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-
-                  {/* Dynamic Island */}
-                  <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[100px] h-[26px] bg-black rounded-full z-30" />
-
-                  {/* Status bar */}
-                  <div className="absolute top-0 inset-x-0 flex justify-between items-center px-6 pt-3 text-[10px] font-semibold text-white drop-shadow z-20">
-                    <span>9:41</span>
-                    <span className="flex items-center gap-1">
-                      <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="6" width="2" height="4" rx="0.5"/><rect x="4" y="4" width="2" height="6" rx="0.5"/><rect x="8" y="2" width="2" height="8" rx="0.5"/><rect x="12" y="0" width="2" height="10" rx="0.5"/></svg>
-                      <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M7,9 a1,1 0 0 1 0,0 Z" fill="currentColor"/><path d="M3,5 c2,-2 6,-2 8,0"/><path d="M1,3 c3,-3 9,-3 12,0"/></svg>
-                      <svg width="18" height="10" viewBox="0 0 18 10" fill="currentColor"><rect x="0.5" y="0.5" width="14" height="9" rx="2" stroke="currentColor" fill="none"/><rect x="2" y="2" width="11" height="6" rx="1"/><rect x="15" y="3.5" width="1.5" height="3" rx="0.5"/></svg>
-                    </span>
-                  </div>
-
-                  {/* Call info banner */}
-                  <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-gray-900/85 backdrop-blur-sm rounded-2xl px-4 py-2 z-20 min-w-[180px]">
-                    <p className="text-white text-[12px] font-bold leading-tight">Dr. Willow Crest, MD</p>
-                    <p className="text-gray-300 text-[10px]">Call: Flu symptoms</p>
-                  </div>
-
-                  {/* Picture-in-picture (patient) */}
-                  <div className="absolute bottom-16 right-3 w-16 h-20 rounded-lg overflow-hidden border-2 border-white shadow-lg z-20">
-                    <img
-                      src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=200&q=80"
-                      alt=""
-                      className="w-full h-full object-cover"
+            {/* Top Bar with Live Audio Visualizer */}
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="absolute top-4 left-6 right-6 flex justify-between items-center z-20"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-white text-[11px] font-medium tracking-wide">Secure Line</span>
+                
+                {/* ── Animated Audio Visualizer ── */}
+                <div className="flex items-end gap-[2px] h-2.5">
+                  {[1, 2, 3, 4].map((i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ height: ["30%", "100%", "40%", "80%", "30%"] }}
+                      transition={{ repeat: Infinity, duration: 0.8 + i * 0.15, ease: "easeInOut" }}
+                      className="w-0.5 bg-[#1ed8ca] rounded-full"
                     />
-                  </div>
-
-                  {/* Home indicator bar */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[100px] h-1 bg-white/80 rounded-full z-20" />
+                  ))}
                 </div>
               </div>
-            </div>
+              <span className="text-white text-[11px] font-medium tracking-wide">02:14</span>
+            </motion.div>
 
-            {/* ── Floating chips ────────────────────────────────────────── */}
-            {/* Top chip */}
-            <div className="absolute top-16 left-2 sm:left-6 z-20 bg-[#d9f576] px-3 py-2 rounded-xl shadow-md shadow-gray-300/40 flex items-center gap-2">
-              <ClipboardList className="w-3.5 h-3.5 text-gray-800 shrink-0" strokeWidth={2.2} />
-              <span className="text-xs font-bold text-gray-900 whitespace-nowrap">Board-certified physicians.</span>
-            </div>
+            {/* Caller Info */}
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="absolute bottom-6 left-6 md:left-8 z-20"
+            >
+              <p className="text-white text-lg md:text-xl font-medium tracking-tight mb-1 drop-shadow-sm">Dr. Willow Crest</p>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1ed8ca] animate-pulse shadow-[0_0_8px_#1ed8ca]" />
+                <p className="text-white/80 text-xs font-medium tracking-wide">Internal Medicine</p>
+              </div>
+            </motion.div>
 
-            {/* Middle-right chip */}
-            <div className="absolute top-1/2 -translate-y-4 right-0 sm:right-2 z-20 bg-[#d9f576] px-3 py-2 rounded-xl shadow-md shadow-gray-300/40 flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-gray-800 shrink-0" strokeWidth={2.2} fill="currentColor" />
-              <span className="text-xs font-bold text-gray-900 whitespace-nowrap">Doctors supported by medical AI.</span>
-            </div>
+            {/* ── PATIENT PIP VIDEO (Replaced Image with Video) ── */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8, x: 20 }}
+              whileInView={{ opacity: 1, scale: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.8 }}
+              className="absolute top-6 right-6 w-24 md:w-36 aspect-video rounded-[8px] md:rounded-[12px] overflow-hidden shadow-2xl z-20 ring-1 ring-white/20 bg-gray-900"
+            >
+              <motion.div 
+                animate={{ y: [0, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+                className="w-full h-full"
+              >
+                <video 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="w-full h-full object-cover scale-110"
+                >
+                  {/* Replace this with a patient stock video URL of your choice */}
+                  <source src="/pip.mp4" type="video/mp4" />
+                </video>
+              </motion.div>
+            </motion.div>
 
-            {/* Bottom chip */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 bg-[#d9f576] px-3 py-2 rounded-xl shadow-md shadow-gray-300/40 flex items-center gap-2">
-              <Globe className="w-3.5 h-3.5 text-gray-800 shrink-0" strokeWidth={2.2} />
-              <span className="text-xs font-bold text-gray-900 whitespace-nowrap">Available across all 50 states + DC</span>
-            </div>
+            {/* Animated Controls */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+              className="absolute bottom-6 right-6 md:right-8 flex items-center gap-2 z-20"
+            >
+              <motion.button whileHover={{ scale: 1.05 }} className="bg-white/10 backdrop-blur-md text-white text-[11px] md:text-[12px] font-medium px-4 py-2 rounded-[8px] border border-white/10 transition-colors hover:bg-white/20">
+                Mute
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.05 }} className="bg-white/10 backdrop-blur-md text-white text-[11px] md:text-[12px] font-medium px-4 py-2 rounded-[8px] border border-white/10 transition-colors hover:bg-white/20">
+                Stop Video
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.05 }} className="bg-red-500 text-white text-[11px] md:text-[12px] font-medium px-5 py-2 rounded-[8px] transition-colors hover:bg-red-600 shadow-lg shadow-red-500/20">
+                End Call
+              </motion.button>
+            </motion.div>
 
           </div>
         </div>
-      </section>
+
+        {/* Laptop Base */}
+        <div className="relative h-3 md:h-4 w-[104%] -ml-[2%] bg-gradient-to-b from-[#e5e5e5] to-[#c4c4c4] rounded-b-[12px] rounded-t-sm shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex justify-center border border-gray-300">
+          <div className="w-16 md:w-24 h-1 md:h-1.5 bg-gray-400/60 rounded-b-md" />
+        </div>
+
+      </motion.div>
+    </motion.div>
+
+  </div>
+</section>
 
       {/* ── DOCTOR TESTIMONIAL + ROSTER ──────────────────────────────────── */}
       {/* Top: quote carousel card. Bottom: 5-card doctor roster grid.       */}
-      <section className="bg-[#fdfdfc] py-20 md:py-24 px-6">
-        <div className="max-w-7xl mx-auto space-y-6">
+    <section className="bg-white pt-12 md:pt-16 pb-24 md:pb-32 px-6 overflow-hidden">
+  <div className="max-w-[1280px] mx-auto space-y-20 md:space-y-24">
 
-          {/* ── Quote carousel card ─────────────────────────────────────── */}
-          <div className="bg-[#faf7ee] border border-[#e8e0d4] rounded-3xl px-8 md:px-12 py-10 md:py-12">
-            <blockquote className="font-playfair italic text-xl md:text-2xl lg:text-[1.7rem] text-gray-900 leading-snug max-w-3xl">
-              &ldquo;{doctorQuotes[quoteIdx].quote}&rdquo;
+    {/* ── Minimalist Quote Carousel ── */}
+    <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
+      
+      {/* Sleek Typographic Overline */}
+      <motion.p 
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        className="text-[#1a7be2] text-[10px] font-bold uppercase tracking-[0.3em] mb-10"
+      >
+        Words from our Physicians
+      </motion.p>
+
+      {/* ── FIXED HEIGHT & 3D STAGE FOR QUOTES ── */}
+      <div 
+        className="relative w-full flex items-center justify-center min-h-[280px] sm:min-h-[220px] md:min-h-[180px]"
+        style={{ perspective: "1200px" }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={quoteIdx}
+            initial={{ opacity: 0, rotateX: 45, y: 20, filter: "blur(8px)" }}
+            animate={{ opacity: 1, rotateX: 0, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, rotateX: -45, y: -20, filter: "blur(8px)" }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute flex flex-col items-center w-full"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <blockquote className="font-['Playfair_Display',_serif] text-2xl md:text-3xl lg:text-4xl text-gray-900 leading-relaxed mb-8 w-full">
+              {doctorQuotes[quoteIdx].quote}
             </blockquote>
+            
+            <p className="font-['Oswald',_sans-serif] font-medium text-gray-900 text-sm md:text-base uppercase tracking-[0.2em]">
+              {doctorQuotes[quoteIdx].author}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
-            <div className="border-t border-dashed border-gray-300 my-6 max-w-3xl" />
+      {/* Sleek Controls */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.4, duration: 1.2 }}
+        className="flex items-center gap-6 mt-6 md:mt-10"
+      >
+        <motion.button
+          whileHover={{ x: -3 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setQuoteIdx((quoteIdx - 1 + doctorQuotes.length) % doctorQuotes.length)}
+          className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#1a7be2] transition-colors duration-500"
+          aria-label="Previous quote"
+        >
+          <ArrowLeft className="w-5 h-5" strokeWidth={1.5} />
+        </motion.button>
 
-            <div className="flex items-center justify-between gap-4 max-w-3xl">
-              <p className="font-bold text-gray-900 text-sm md:text-base">
-                {doctorQuotes[quoteIdx].author}
-              </p>
+        <div className="flex items-center gap-2.5">
+          {doctorQuotes.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setQuoteIdx(i)}
+              aria-label={`Show quote ${i + 1}`}
+              className={`h-[2px] rounded-full transition-all duration-700 ease-out ${
+                i === quoteIdx 
+                  ? 'w-8 bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca]' 
+                  : 'w-3 bg-gray-200 hover:bg-gray-300'
+              }`}
+            />
+          ))}
+        </div>
 
-              {/* Carousel controls */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={() => setQuoteIdx((quoteIdx - 1 + doctorQuotes.length) % doctorQuotes.length)}
-                  className="w-9 h-9 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-colors"
-                  aria-label="Previous quote"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
+        <motion.button
+          whileHover={{ x: 3 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setQuoteIdx((quoteIdx + 1) % doctorQuotes.length)}
+          className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-[#1a7be2] transition-colors duration-500"
+          aria-label="Next quote"
+        >
+          <ArrowRight className="w-5 h-5" strokeWidth={1.5} />
+        </motion.button>
+      </motion.div>
+    </div>
 
-                <div className="flex items-center gap-1.5">
-                  {doctorQuotes.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setQuoteIdx(i)}
-                      aria-label={`Show quote ${i + 1}`}
-                      className={`h-1.5 rounded-full transition-all ${
-                        i === quoteIdx ? 'w-6 bg-gray-900' : 'w-1.5 bg-gray-300 hover:bg-gray-400'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setQuoteIdx((quoteIdx + 1) % doctorQuotes.length)}
-                  className="w-9 h-9 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-colors"
-                  aria-label="Next quote"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
+    {/* ── Minimalist Doctor Roster (3D Grid) ── */}
+    <div 
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-6 pt-12 md:pt-16 border-t border-gray-100"
+      style={{ perspective: "1500px" }}
+    >
+      {doctorRoster.map((doc, i) => (
+        <motion.div
+          key={doc.name}
+          initial={{ opacity: 0, rotateX: -30, y: 40, scale: 0.9, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, rotateX: 0, y: 0, scale: 1, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ delay: i * 0.15, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ y: -8, scale: 1.05, transition: { duration: 0.5, ease: "easeOut" } }}
+          className="group flex flex-col items-center text-center cursor-default"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          
+          {/* Portrait with Always-Moving Gradient Border */}
+          <div className="relative w-32 h-32 md:w-36 md:h-36 rounded-full mb-6 p-[2px] overflow-hidden flex items-center justify-center shadow-[0_15px_30px_-10px_rgba(0,0,0,0.08)] group-hover:shadow-[0_25px_40px_-15px_rgba(26,123,226,0.2)] transition-shadow duration-500">
+            
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
+              className="absolute w-[200%] h-[200%] bg-[conic-gradient(from_0deg,#1a7be2,#1ed8ca,#1a7be2)] opacity-80"
+            />
+            
+            <div className="relative w-full h-full rounded-full overflow-hidden bg-white border-[3px] border-white z-10">
+              <img
+                src={doc.img}
+                alt={doc.name}
+                className="w-full h-full object-cover transition-transform duration-[1000ms] ease-out group-hover:scale-110"
+              />
             </div>
           </div>
 
-          {/* ── Doctor roster — 5 cards ─────────────────────────────────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {doctorRoster.map((doc) => (
-              <div
-                key={doc.name}
-                className="bg-[#faf7ee] border border-[#e8e0d4] rounded-3xl p-6 flex flex-col items-center text-center"
-              >
-                {/* Portrait */}
-                <div className="w-28 h-28 rounded-2xl overflow-hidden mb-4 shrink-0">
-                  <img src={doc.img} alt={doc.name} className="w-full h-full object-cover" />
-                </div>
+          {/* ── REDUCED Typographic Info Lockup ── */}
+          <h4 className="font-['Oswald',_sans-serif] text-lg font-medium text-gray-900 tracking-wider uppercase mb-1 transition-colors duration-700 group-hover:text-[#1a7be2]">
+            {doc.name}
+          </h4>
+          
+          <p className="font-['Playfair_Display',_serif] text-[15px] text-gray-500 italic transition-colors duration-700 group-hover:text-[#1a7be2]">
+            {doc.specialty}
+          </p>
+          
+        </motion.div>
+      ))}
+    </div>
 
-                {/* Name */}
-                <p className="font-bold text-gray-900 text-sm leading-tight mb-2">{doc.name}</p>
+  </div>
+</section>
 
-                {/* Specialty */}
-                <p className="text-xs text-gray-600 leading-relaxed mb-5 min-h-[3rem]">
-                  {doc.specialty}
-                </p>
-
-                {/* Dashed divider */}
-                <div className="border-t border-dashed border-gray-300 w-full mb-4" />
-
-                {/* School chip */}
-                <span className="bg-[#e8f5e3] text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-full mb-2 leading-tight">
-                  {doc.school}
-                </span>
-
-                {/* Years chip */}
-                <span className="bg-[#e8f5e3] text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
-                  {doc.years} years of exp
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── PRIMARY CARE THAT DOES IT ALL (moving carousel) ──────────────── */}
       {/* Header (split title + description) + infinite horizontal marquee. */}
-      <section className="bg-[#fdfdfc] py-20 md:py-24 overflow-hidden">
+      
 
-        {/* Header */}
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-16 items-end mb-8">
-          <h2 className="font-playfair text-3xl md:text-4xl lg:text-[2.75rem] text-gray-900 leading-[1.1] tracking-tight">
-            Primary care that does it <em className="italic">all</em>
+<section className="bg-white pt-12 md:pt-16 pb-24 md:pb-32 overflow-hidden font-['Manrope',_sans-serif]">
+      
+      {/* ── Animated Full-Length Divider (Moved to Top) ── */}
+      <motion.div 
+        initial={{ opacity: 0, scaleX: 0 }}
+        whileInView={{ opacity: 1, scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full h-px bg-gray-200 mb-16 md:mb-20 origin-left"
+      />
+
+      {/* ── Header: Split Editorial Layout ── */}
+      <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-end mb-16 md:mb-24">
+        
+        {/* Left: Heading */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-7 flex flex-col items-start"
+        >
+          <p className="text-[#1a7be2] text-[10px] font-bold uppercase tracking-[0.3em] mb-6">
+            Comprehensive Coverage
+          </p>
+          <h2 className="text-4xl md:text-5xl lg:text-[56px] font-medium text-gray-900 leading-[1.05] tracking-tighter">
+            Primary care that does it{" "}
+            <span className="font-['Playfair_Display',_serif] italic text-transparent bg-clip-text bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca] pr-2">
+              all.
+            </span>
           </h2>
-          <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+        </motion.div>
+
+        {/* Right: Description */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-5 pb-2"
+        >
+          <p className="text-gray-500 text-[15px] md:text-base leading-relaxed font-light max-w-md">
             From the sniffles to the serious. Check a symptom. Refill a prescription. Get a referral. Understand a diagnosis. MediVoyage handles your full primary care, 24/7.
           </p>
-        </div>
+        </motion.div>
+      </div>
 
-        {/* Divider */}
-        <div className="max-w-7xl mx-auto px-6 mb-10">
-          <div className="border-t border-gray-200" />
-        </div>
-
-        {/* Moving carousel — duplicated cards for seamless loop */}
-        <div className="relative w-full overflow-hidden">
-          <div className="flex gap-4 animate-marquee-x w-max">
-            {[...primaryCareCards, ...primaryCareCards].map((card, i) => (
-              <div key={i} className="shrink-0 w-[280px] md:w-[300px]">
-                {/* Photo + chip overlay */}
-                <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-4">
-                  <img
-                    src={card.img}
-                    alt={card.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <span
-                    className={`absolute ${card.chipPos} bg-[#d9f576] text-gray-900 text-[11px] font-semibold px-3 py-1.5 rounded-full shadow-md max-w-[80%] whitespace-normal leading-snug text-center`}
-                  >
+      {/* ── Infinite Marquee Carousel (Auto-Moving) ── */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.2, delay: 0.4 }}
+        className="relative w-full overflow-hidden pb-10"
+        style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}
+      >
+        {/* The animate-marquee-x class drives the motion. It pauses on hover. */}
+        <div className="flex gap-4 md:gap-6 animate-marquee-x w-max hover:[animation-play-state:paused]">
+          
+          {/* Duplicated array to create a seamless infinite loop */}
+          {[...primaryCareCards, ...primaryCareCards].map((card, i) => (
+            <div key={i} className="group shrink-0 w-[280px] md:w-[360px] flex flex-col gap-4 cursor-pointer">
+              
+              {/* Image Container (12px rounded corners) */}
+              <div className="relative aspect-[3/4] rounded-[12px] overflow-hidden bg-gray-50 shadow-[0_15px_30px_-15px_rgba(0,0,0,0.05)]">
+                <img
+                  src={card.img}
+                  alt={card.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1000ms] ease-out group-hover:scale-105"
+                />
+                
+                {/* Glassmorphism Tag */}
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md border border-white/50 px-3 py-1.5 rounded-full shadow-sm transition-transform duration-500 group-hover:translate-y-[-2px]">
+                  <span className="text-[#1a7be2] text-[9px] font-bold uppercase tracking-widest block mt-[1px]">
                     {card.chip}
                   </span>
                 </div>
-
-                {/* Title */}
-                <h3 className="font-bold text-lg text-gray-900 mb-2 px-1">{card.title}</h3>
-
-                {/* Description */}
-                <p className="text-sm text-gray-600 leading-relaxed px-1">{card.desc}</p>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Marquee keyframes */}
-        <style>{`
-          @keyframes marquee-x {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
-          }
-          .animate-marquee-x {
-            animation: marquee-x 60s linear infinite;
-          }
-          .animate-marquee-x:hover {
-            animation-play-state: paused;
-          }
-        `}</style>
-      </section>
+              {/* Typographic Text Lockup */}
+              <div className="px-1 mt-1 md:mt-2">
+                <h3 className="font-['Oswald',_sans-serif] text-xl md:text-2xl text-gray-900 tracking-wider uppercase mb-1.5 transition-colors duration-500 group-hover:text-[#1a7be2]">
+                  {card.title}
+                </h3>
+                <p className="text-[13px] md:text-[14px] text-gray-500 leading-relaxed font-light transition-colors duration-500 group-hover:text-gray-900">
+                  {card.desc}
+                </p>
+              </div>
+
+            </div>
+          ))}
+
+        </div>
+      </motion.div>
+
+      {/* ── Marquee CSS Keyframes ── */}
+      <style>{`
+        @keyframes marquee-x {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        .animate-marquee-x {
+          animation: marquee-x 40s linear infinite;
+        }
+      `}</style>
+      
+    </section>
 
       {/* ── UTAH PARTNERSHIP BANNER ──────────────────────────────────────── */}
-      <section className="bg-[#f1efe6] py-16 px-6 border-y border-[#e8e0d4]">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-8">
+     <section className="bg-white py-20 md:py-28 px-6 border-y border-gray-100 overflow-hidden font-['Manrope',_sans-serif]">
+      <div className="max-w-[1000px] mx-auto flex flex-col md:flex-row items-center justify-center gap-12 md:gap-20">
 
-          {/* Stylized state seal */}
-          <div className="shrink-0">
-            <svg viewBox="0 0 120 120" className="w-24 h-24" aria-hidden="true">
-              <defs>
-                <path id="utah-curve" d="M 60,60 m -48,0 a 48,48 0 1,1 96,0 a 48,48 0 1,1 -96,0" />
-                <path id="utah-curve-bottom" d="M 60,60 m -48,0 a 48,48 0 1,0 96,0" />
-              </defs>
-              <circle cx="60" cy="60" r="56" fill="none" stroke="#374151" strokeWidth="1.5" />
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#374151" strokeWidth="0.4" />
-              <text fontSize="6" fontWeight="600" fill="#374151" letterSpacing="1">
-                <textPath href="#utah-curve" startOffset="2">
-                  THE GREAT SEAL OF THE STATE OF UTAH ★
+        {/* ── Rotating Minimalist Rajasthan State Seal ── */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="relative shrink-0 flex items-center justify-center"
+        >
+          {/* Subtle glowing aura behind the seal */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#1a7be2]/10 to-[#1ed8ca]/10 blur-2xl rounded-full scale-150" />
+          
+          <svg viewBox="0 0 120 120" className="w-32 h-32 md:w-40 md:h-40 relative z-10" aria-hidden="true">
+            <defs>
+              <path id="raj-curve" d="M 60,60 m -45,0 a 45,45 0 1,1 90,0 a 45,45 0 1,1 -90,0" />
+              <linearGradient id="seal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#1a7be2" />
+                <stop offset="100%" stopColor="#1ed8ca" />
+              </linearGradient>
+            </defs>
+
+            {/* Rotating Outer Text */}
+            <motion.g 
+              animate={{ rotate: 360 }} 
+              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              className="origin-center"
+            >
+              <circle cx="60" cy="60" r="56" fill="none" stroke="#f3f4f6" strokeWidth="1" />
+              <circle cx="60" cy="60" r="48" fill="none" stroke="#e5e7eb" strokeWidth="0.5" strokeDasharray="2 3" />
+              <text fontSize="6.5" fontWeight="500" fill="#9ca3af" letterSpacing="2.5" className="font-['Oswald',_sans-serif] uppercase">
+                <textPath href="#raj-curve" startOffset="4">
+                  GOVERNMENT OF RAJASTHAN ★ MEDICAL DEPT ★ 
                 </textPath>
               </text>
-              {/* Beehive (Utah state symbol) */}
-              <g transform="translate(45,46)" stroke="#374151" strokeWidth="0.8" fill="none">
-                <ellipse cx="15" cy="22" rx="14" ry="2.5" />
-                <ellipse cx="15" cy="18" rx="12.5" ry="2.5" />
-                <ellipse cx="15" cy="14" rx="10.5" ry="2.5" />
-                <ellipse cx="15" cy="10" rx="8" ry="2.5" />
-                <ellipse cx="15" cy="6" rx="5.5" ry="2.5" />
-                <ellipse cx="15" cy="2.5" rx="3" ry="2" />
-              </g>
-              <text x="60" y="100" textAnchor="middle" fontSize="6.5" fontWeight="600" fill="#374151">1896</text>
-            </svg>
-          </div>
+            </motion.g>
 
-          {/* Copy */}
-          <div className="text-center sm:text-left">
-            <p className="text-sm md:text-base text-gray-800 font-medium max-w-md">
-              Partnered with the state of Utah to make it the easiest state in America to refill your prescriptions.
+            {/* Static Inner Emblem: Minimalist Jharokha (Arch) & Sun */}
+            <g transform="translate(0, 1)" stroke="#111827" strokeWidth="1.2" fill="none">
+              {/* Outer double arch */}
+              <path d="M 38,76 V 52 C 38,40 48,32 60,26 C 72,32 82,40 82,52 V 76 Z" />
+              {/* Inner arch */}
+              <path d="M 46,76 V 58 C 46,50 52,44 60,38 C 68,44 74,50 74,58 V 76 Z" strokeWidth="0.8" />
+              {/* Ground line */}
+              <path d="M 32,76 H 88" strokeWidth="1.5" />
+            </g>
+
+            {/* AI/Tech Accent inside the traditional arch */}
+            <circle cx="60" cy="62" r="4.5" fill="url(#seal-grad)" />
+
+            <text x="60" y="94" textAnchor="middle" fontSize="6.5" fontWeight="400" fill="#6b7280" className="font-['Oswald',_sans-serif] tracking-[0.3em]">
+              1949
+            </text>
+          </svg>
+        </motion.div>
+
+        {/* ── Elegant Typographic Copy ── */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center md:text-left flex flex-col items-center md:items-start"
+        >
+          <p className="font-['Playfair_Display',_serif] text-2xl md:text-[28px] lg:text-[32px] text-gray-900 leading-tight mb-4 max-w-lg">
+            Partnered with the Government of Rajasthan to build India’s most accessible digital healthcare network.
+          </p>
+          
+          <div className="flex items-center gap-3 mt-2">
+            <span className="w-8 h-[1px] bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca] hidden sm:block" />
+            <p className="font-['Oswald',_sans-serif] text-[13px] md:text-[14px] text-gray-500 uppercase tracking-widest">
+              The first AI <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca] font-medium">trusted</span> to bridge urban & rural care
             </p>
-            <p className="text-xs md:text-sm text-gray-700 mt-3 flex items-center justify-center sm:justify-start gap-2">
-              <span className="text-[#2563eb]">◆</span>
-              The first AI <em className="italic text-[#2563eb] font-semibold">trusted</em> to refill prescriptions
-              <span className="text-[#2563eb]">◆</span>
-            </p>
+            <span className="w-8 h-[1px] bg-gradient-to-l from-[#1a7be2] to-[#1ed8ca] hidden sm:block" />
           </div>
-        </div>
-      </section>
+        </motion.div>
+
+      </div>
+    </section>
 
       {/* ── LEARN MORE ABOUT YOUR HEALTH (blog grid) ─────────────────────── */}
-      <section className="bg-[#fdfdfc] py-20 md:py-24 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-white pt-12 md:pt-16 pb-16 md:pb-24 overflow-hidden font-['Manrope',_sans-serif]">
+      <div className="max-w-[1280px] mx-auto px-4">
 
-          {/* Header row */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-            <h2 className="font-playfair italic text-3xl md:text-4xl text-gray-900 tracking-tight">
-              Learn more about your health
+        {/* ── Header Row (Pushed close to the border, with extra space below) ── */}
+        <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-16 md:mb-20">
+          
+          {/* Left: Heading Lockup */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-start"
+          >
+            <p className="text-[#1a7be2] text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
+              Medical Journal
+            </p>
+            <h2 className="text-3xl md:text-5xl font-medium text-gray-900 leading-[1.05] tracking-tighter">
+              Learn more about your{" "}
+              <span className="font-['Playfair_Display',_serif] italic text-transparent bg-clip-text bg-gradient-to-r from-[#1a7be2] to-[#1ed8ca] pr-2">
+                health.
+              </span>
             </h2>
+          </motion.div>
+
+          {/* Right: View All Link */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
             <a
               href="#blog"
               onClick={(e) => e.preventDefault()}
-              className="border border-gray-300 hover:border-gray-500 rounded-full px-5 py-2 text-sm font-semibold text-gray-900 transition-colors"
+              className="group flex items-center gap-2 text-[13px] font-bold text-gray-900 uppercase tracking-widest hover:text-[#1a7be2] transition-colors duration-300 pb-2"
             >
-              Our blog
+              Our Blog
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
-          </div>
+          </motion.div>
+        </div>
 
-          {/* Dashed divider */}
-          <div className="border-t border-dashed border-gray-300 mb-10" />
-
-          {/* Articles 2x2 grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 lg:gap-x-14 gap-y-10">
-            {learnArticles.map((article) => (
-              <div key={article.title} className="flex gap-5">
+        {/* ── Compact 4-Column Grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          {learnArticles.map((article, i) => (
+            <motion.div 
+              key={article.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="group flex flex-col cursor-pointer"
+            >
+              
+              {/* Image Container (Exactly 12px rounded corners) */}
+              <div className="relative w-full aspect-[4/3] rounded-[12px] overflow-hidden bg-gray-50 mb-5 shadow-[0_5px_15px_-5px_rgba(0,0,0,0.05)]">
                 <img
                   src={article.img}
-                  alt=""
-                  className="w-36 h-36 md:w-44 md:h-44 rounded-2xl object-cover shrink-0"
+                  alt={article.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1000ms] ease-out group-hover:scale-110"
                 />
-                <div className="flex flex-col">
-                  <h3 className="font-bold text-base md:text-lg text-gray-900 leading-snug mb-2">
-                    {article.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3">
-                    {article.desc}
-                  </p>
-                  <button className="self-start bg-white border border-gray-200 hover:border-gray-400 rounded-full px-4 py-2 text-sm font-semibold text-gray-900 transition-colors">
-                    {article.cta}
-                  </button>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
+              </div>
+
+              {/* Text Content */}
+              <div className="flex flex-col pr-2">
+                <h3 className="font-['Oswald',_sans-serif] text-lg md:text-xl text-gray-900 tracking-wide uppercase mb-2 transition-colors duration-500 group-hover:text-[#1a7be2] leading-snug">
+                  {article.title}
+                </h3>
+                
+                <p className="text-[13px] md:text-[14px] text-gray-500 leading-relaxed font-light line-clamp-3 mb-4">
+                  {article.desc}
+                </p>
+
+                {/* Minimalist Action Link */}
+                <div className="flex items-center gap-1.5 text-[12px] font-bold text-gray-900 tracking-wide transition-colors duration-500 group-hover:text-[#1a7be2] mt-auto">
+                  {article.cta || "Read Article"}
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-500 group-hover:translate-x-1" />
                 </div>
               </div>
-            ))}
-          </div>
+
+            </motion.div>
+          ))}
         </div>
-      </section>
 
-      {/* ── AI MEDICAL CONCIERGE (premium $9 upgrade) ────────────────────── */}
-      {/* Chat is always free; this section is the paid upgrade — only shown to free users */}
-      {!hasAccess && (
-        <section className="bg-white px-6 py-20 border-t border-gray-100">
-          <div className="max-w-6xl mx-auto">
+      </div>
+    </section>
+     
+<section className="bg-white pt-16 md:pt-24 pb-24 md:pb-32 px-4 md:px-6 overflow-hidden">
+      <div className="max-w-[1280px] mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full"
+        >
+          <div className="relative bg-[#09090b] rounded-[24px] md:rounded-[32px] p-8 md:p-12 lg:p-16 shadow-2xl overflow-hidden text-left border border-white/10">
+            
+            {/* Ambient Brand Glows */}
+            <div className="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 bg-[#1a7be2] rounded-full blur-[150px] opacity-30 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 bg-[#1ed8ca] rounded-full blur-[150px] opacity-20 pointer-events-none" />
 
-            {/* Section heading */}
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-12 leading-snug">
-              Our <span className="text-[#2563eb]">AI-powered medical concierge</span> which provides
-            </h2>
-
-            {/* 3-card grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-
-              {/* ── Card 1: Teleconsultations ─────────────────────────── */}
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-                <div className="h-2 bg-[#0b1a35]" />
-                <div className="p-8 flex flex-col items-center text-center flex-1">
-                  {/* Illustration */}
-                  <div className="w-44 h-44 rounded-full bg-[#eef4ff] flex items-center justify-center mb-8 relative">
-                    <div className="relative">
-                      <div className="w-32 h-20 bg-white rounded-md shadow-md border border-[#2563eb]/30 overflow-hidden">
-                        <div className="h-3 bg-[#2563eb] flex items-center px-1.5 gap-0.5">
-                          <div className="w-1 h-1 rounded-full bg-white/60" />
-                          <div className="w-1 h-1 rounded-full bg-white/60" />
-                          <div className="w-1 h-1 rounded-full bg-white/60" />
-                        </div>
-                        <div className="flex gap-1.5 p-1.5 h-[calc(100%-12px)]">
-                          <div className="flex-1 bg-[#e0f5f0] rounded-sm relative flex items-end justify-center pb-0.5">
-                            <div className="w-3 h-3 rounded-full bg-[#1ed8ca]" />
-                          </div>
-                          <div className="flex-1 bg-[#e0eaff] rounded-sm relative flex items-end justify-center pb-0.5">
-                            <div className="w-3 h-3 rounded-full bg-[#2563eb]" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-36 h-1 bg-gray-300 rounded-b-md -mx-2 mt-0.5" />
-                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border-2 border-[#2563eb] flex items-center justify-center">
-                        <Plus className="w-3 h-3 text-[#2563eb]" strokeWidth={3} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-base text-gray-800 font-medium leading-relaxed">
-                    <span className="text-[#2563eb] font-bold">Teleconsultations</span> with top specialists and <span className="text-[#2563eb] font-bold">fixed-price procedure booking</span>
-                  </p>
-                </div>
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-12 lg:mb-16 border-b border-white/10 pb-12 lg:pb-16">
+              
+              {/* ── The Pitch ── */}
+              <div className="max-w-2xl">
+                <span className="text-[#1ed8ca] text-[10px] font-bold uppercase tracking-[0.3em] block mb-5">
+                  Premium Access
+                </span>
+                
+                <h3 className="font-['Oswald',_sans-serif] text-4xl md:text-5xl lg:text-[56px] text-white tracking-wide mb-6 leading-[1.1] uppercase">
+                  Concierge medicine.<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-300 to-gray-500">Nine dollars a year.</span>
+                </h3>
+                
+                <p className="font-['Playfair_Display',_serif] text-gray-300 text-lg md:text-xl font-light leading-relaxed max-w-lg italic">
+                  Skip the waitlists. Unlock instant specialist matching, fixed-price procedures, and priority global care for less than a dollar a month.
+                </p>
               </div>
 
-              {/* ── Card 2: AI patient triage + doctor matching ────────── */}
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-                <div className="h-2 bg-[#2563eb]" />
-                <div className="p-8 flex flex-col items-center text-center flex-1">
-                  {/* Illustration */}
-                  <div className="w-44 h-44 rounded-full bg-[#eaf6f3] flex items-center justify-center mb-8 relative">
-                    <div className="relative w-32 h-32">
-                      {/* Connecting lines */}
-                      <svg className="absolute inset-0 w-full h-full" viewBox="0 0 128 128" aria-hidden="true">
-                        <line x1="20" y1="20" x2="64" y2="64" stroke="#94a3b8" strokeWidth="1" />
-                        <line x1="108" y1="20" x2="64" y2="64" stroke="#94a3b8" strokeWidth="1" />
-                        <line x1="20" y1="108" x2="64" y2="64" stroke="#94a3b8" strokeWidth="1" />
-                        <line x1="108" y1="108" x2="64" y2="64" stroke="#94a3b8" strokeWidth="1" />
-                      </svg>
-                      {/* Corner avatars */}
-                      <div className="absolute top-0 left-0 w-8 h-8 rounded-full border-2 border-[#2563eb] bg-white flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-[#2563eb]" />
-                      </div>
-                      <div className="absolute top-0 right-0 w-8 h-8 rounded-full border-2 border-[#1ed8ca] bg-white flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-[#1ed8ca]" />
-                      </div>
-                      <div className="absolute bottom-0 left-0 w-8 h-8 rounded-full border-2 border-[#2563eb] bg-white flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-[#2563eb]" />
-                      </div>
-                      <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full border-2 border-[#1ed8ca] bg-white flex items-center justify-center">
-                        <User className="w-3.5 h-3.5 text-[#1ed8ca]" />
-                      </div>
-                      {/* Central AI hub */}
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <div className="w-16 h-16 rounded-full border-2 border-dashed border-[#1ed8ca]/50 flex items-center justify-center">
-                          <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-[#2563eb] to-[#1565c0] flex items-center justify-center shadow-lg">
-                            <span className="text-white text-xs font-bold tracking-wide">AI</span>
-                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white border border-[#2563eb] flex items-center justify-center">
-                              <Plus className="w-2 h-2 text-[#2563eb]" strokeWidth={4} />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              {/* ── The Call to Action ── */}
+              <div className="flex flex-col items-start lg:items-end shrink-0">
+                <button
+                  onClick={onUpgradeClick}
+                  className="group bg-white hover:bg-gray-200 text-black font-['Oswald',_sans-serif] font-medium text-[15px] uppercase tracking-[0.15em] px-10 py-4 rounded-full transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:scale-[1.02]"
+                >
+                  Upgrade Now <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <p className="text-gray-500 text-[11px] mt-4 uppercase tracking-[0.15em] font-semibold">
+                  Cancel anytime. No hidden fees.
+                </p>
+              </div>
+            </div>
 
-                  <p className="text-base text-gray-800 font-medium leading-relaxed">
-                    AI-driven <span className="text-[#2563eb] font-bold">patient triage</span> and intelligent <span className="text-[#2563eb] font-bold">doctor matchmaking, coordination and data keeping</span>
-                  </p>
+            {/* ── The Features Grid ── */}
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
+              
+              {/* Feature 1 */}
+              <div>
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-5 transition-colors duration-500 hover:bg-[#1a7be2]/20 hover:border-[#1a7be2]/50">
+                  <Stethoscope className="w-4 h-4 text-[#1a7be2]" />
                 </div>
+                <h4 className="font-['Oswald',_sans-serif] text-white text-xl uppercase tracking-wider mb-3">Priority Specialists</h4>
+                <p className="font-['Playfair_Display',_serif] text-gray-400 text-[15px] leading-relaxed pr-4">
+                  Connect instantly with top-tier specialists and secure fixed-price procedure bookings worldwide.
+                </p>
               </div>
 
-              {/* ── Card 3: Personalized travel + care itineraries ─────── */}
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-                <div className="h-2 bg-[#1ed8ca]" />
-                <div className="p-8 flex flex-col items-center text-center flex-1">
-                  {/* Illustration */}
-                  <div className="w-44 h-44 rounded-full bg-[#eef4ff] flex items-center justify-center mb-8 relative">
-                    <div className="relative">
-                      <div className="w-28 h-32 bg-white rounded-lg shadow-md border-2 border-[#2563eb]/20 overflow-hidden">
-                        <div className="bg-[#2563eb]/10 px-2 py-1.5 flex items-center justify-between">
-                          <span className="text-[10px] font-bold text-[#2563eb]">Itinerary</span>
-                        </div>
-                        <div className="p-2 space-y-1.5">
-                          {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex items-center gap-1.5">
-                              <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center ${i < 4 ? 'bg-[#1ed8ca]' : 'border border-gray-300 bg-white'}`}>
-                                {i < 4 && <Check className="w-1.5 h-1.5 text-white" strokeWidth={4} />}
-                              </div>
-                              <div className="h-1 bg-gray-200 flex-1 rounded" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Plane top right */}
-                      <div className="absolute -top-2 -right-3 w-9 h-9 rounded-full bg-white border-2 border-[#1ed8ca]/60 flex items-center justify-center shadow-md">
-                        <Plane className="w-4 h-4 text-[#1ed8ca]" />
-                      </div>
-                      {/* Map pin bottom right */}
-                      <div className="absolute -bottom-1 -right-2 w-7 h-7 rounded-full bg-[#2563eb]/10 flex items-center justify-center">
-                        <MapPin className="w-3.5 h-3.5 text-[#2563eb]" fill="currentColor" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-base text-gray-800 font-medium leading-relaxed">
-                    Personalized travel, and care itineraries for <span className="text-[#2563eb] font-bold">seamless experience</span>
-                  </p>
+              {/* Feature 2 */}
+              <div>
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-5 transition-colors duration-500 hover:bg-[#1ed8ca]/20 hover:border-[#1ed8ca]/50">
+                  <Zap className="w-4 h-4 text-[#1ed8ca]" />
                 </div>
+                <h4 className="font-['Oswald',_sans-serif] text-white text-xl uppercase tracking-wider mb-3">AI Matchmaking</h4>
+                <p className="font-['Playfair_Display',_serif] text-gray-400 text-[15px] leading-relaxed pr-4">
+                  Intelligent doctor matchmaking, precision symptom triage, and secure, centralized data keeping.
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div>
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-5 transition-colors duration-500 hover:bg-white/20 hover:border-white/50">
+                  <Plane className="w-4 h-4 text-white" />
+                </div>
+                <h4 className="font-['Oswald',_sans-serif] text-white text-xl uppercase tracking-wider mb-3">Global Itineraries</h4>
+                <p className="font-['Playfair_Display',_serif] text-gray-400 text-[15px] leading-relaxed pr-4">
+                  Personalized travel and comprehensive care itineraries mapped out for a seamless global experience.
+                </p>
               </div>
 
             </div>
 
-            {/* Upgrade CTA */}
-            <div className="bg-gradient-to-r from-[#eef4ff] via-white to-[#eaf6f3] border border-gray-200 rounded-2xl px-8 py-8 md:py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#2563eb]/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5 text-[#2563eb]" />
-                </div>
-                <div className="text-left">
-                  <p className="text-lg md:text-xl font-extrabold text-gray-900 leading-tight">
-                    Unlock the full medical concierge for <span className="text-[#2563eb]">$9</span>
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    One-time payment · Lifetime access · No subscription · Chat stays free forever
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={onUpgradeClick}
-                className="shrink-0 inline-flex items-center gap-2 bg-[#2563eb] hover:bg-blue-700 text-white font-bold text-sm uppercase tracking-widest px-7 py-4 rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[#2563eb]/30"
-              >
-                Unlock for $9 <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
-        </section>
-      )}
+        </motion.div>
+      </div>
+    </section>
+           
 
       <Footer />
 
