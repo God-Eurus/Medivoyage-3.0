@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useInView, animate as fmAnimate } from 'framer-motion';
 import {
   Send, Shield, Lock, EyeOff, CheckCircle, ArrowRight,
-  UploadCloud, X, FileText, AlertCircle, ShieldCheck, ServerCrash,
+  UploadCloud, X, FileText, AlertCircle, ServerCrash,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
@@ -48,36 +48,6 @@ interface NavProps {
   userEmail?: string;
 }
 
-// ── Trust badges ──────────────────────────────────────────────────────────────
-const trustBadges = [
-  {
-    icon: <Lock className="w-5 h-5" />,
-    title: '256-bit SSL',
-    desc: 'All data is encrypted in transit and at rest.',
-  },
-  {
-    icon: <EyeOff className="w-5 h-5" />,
-    title: 'Doctors Only',
-    desc: 'Your files are seen by our clinical team — no one else.',
-  },
-  {
-    icon: <Shield className="w-5 h-5" />,
-    title: 'Never Shared',
-    desc: 'Your case is never shared with your current doctor.',
-  },
-  {
-    icon: <ShieldCheck className="w-5 h-5" />,
-    title: 'Delete Anytime',
-    desc: 'Email us to have all your data permanently removed.',
-  },
-   {
-    icon: <ShieldCheck className="w-5 h-5" />,
-    title: 'Delete Anytime',
-    desc: 'Email us to have all your data permanently removed.',
-  },
-
-];
-
 const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.heic,.dcm';
 const MAX_FILE_MB = 20;
 const MAX_FILES = 6;
@@ -112,7 +82,7 @@ const treatmentCards = [
   { 
     title: "Diagnostic Review", 
     desc: "A meticulous second review of your MRIs and X-rays to ensure the initial diagnosis didn't miss subtle alternatives.", 
-    img: " https://images.unsplash.com/photo-1758691462493-120a069304e6?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fG1lZGljYWwlMjByZXBvcnR8ZW58MHwwfDB8fHwy"
+    img: "https://images.unsplash.com/photo-1758691462493-120a069304e6?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fG1lZGljYWwlMjByZXBvcnR8ZW58MHwwfDB8fHwy"
   },
   { 
     title: "Targeted Injections", 
@@ -232,8 +202,8 @@ export default function HonestSecondOpinion(props: NavProps) {
     }
   };
 
-  const inputClass = 'w-full bg-white border border-gray-200 px-4 py-3.5 text-sm font-medium text-gray-900 focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all placeholder-gray-400 rounded-lg';
-  const labelClass = 'block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2';
+  const inputClass = 'w-full bg-gray-50/50 border border-gray-200 rounded-lg px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/10 transition-all placeholder:text-gray-400';
+  const labelClass = 'block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5';
 
   // ── Success state ────────────────────────────────────────────────────────
   if (status === 'success') {
@@ -296,7 +266,7 @@ export default function HonestSecondOpinion(props: NavProps) {
   >
     {/* Top Text Group */}
     <div>
-      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl lg:text-[6rem] font-extrabold tracking-tight text-white leading-[1.02] mb-6 drop-shadow-lg">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[6rem] font-extrabold tracking-tight text-white leading-[1.02] mb-6 drop-shadow-lg">
         We prescribe<br />
         40% less surgeries
       </h1>
@@ -328,10 +298,10 @@ export default function HonestSecondOpinion(props: NavProps) {
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       className="mb-12 md:mb-14 max-w-3xl"
     >
-      <span className="text-[10px] font-medium uppercase tracking-[0.4em] text-gray-400 mb-4 block">
+      <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4 block">
         Our Impact
       </span>
-      <h2 className="text-3xl md:text-5xl lg:text-6xl font-medium tracking-tight text-gray-900 leading-[1.05]">
+      <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 leading-[1.05]">
         Data-driven clarity.<br />
         <span className="text-gray-400">Proven outcomes.</span>
       </h2>
@@ -477,15 +447,25 @@ export default function HonestSecondOpinion(props: NavProps) {
 </section>
 
       {/* ── WORLD MAP ────────────────────────────────────────────────────── */}
-      <section className="bg-white py-24 md:py-28 px-6 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-white pt-4 pb-16 md:pt-8 md:pb-24 px-0 overflow-hidden">
+
+        {/* ── FULL WIDTH DIVIDER LINE (matches treatment + form sections) ── */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="h-[1px] w-full bg-gray-200 mb-12 md:mb-16 origin-left"
+        />
+
+        <div className="max-w-6xl mx-auto px-6">
 
           <motion.div
             initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}
             className="text-center mb-14"
           >
             <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4 block">Global Reach</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tighter text-gray-900 mb-4 leading-[1.05]">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-4 leading-[1.05]">
               Turns out second guessing<br />is a good thing.
             </h2>
             <p className="text-gray-600 text-base md:text-lg max-w-xl mx-auto">We got calls from around the world.</p>
@@ -546,8 +526,11 @@ export default function HonestSecondOpinion(props: NavProps) {
       viewport={{ once: true }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       // ── MASSIVE SPACE ADDED BELOW TITLE (mb-20 md:mb-28) ──
-      className="mb-20 md:mb-28" 
+      className="mb-20 md:mb-28"
     >
+      <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4 block">
+        Before Any Surgery
+      </span>
       <h2 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold tracking-tight text-gray-900 leading-[1.1]">
         Everything We Try<br />Before Surgery
       </h2>
@@ -632,7 +615,7 @@ export default function HonestSecondOpinion(props: NavProps) {
   <div className="max-w-4xl mx-auto">
 
     <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
-      <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4 block">Submit Your Case</span>
+      <span className="text-[11px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4 block">Submit Your Case</span>
       <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 mb-3 leading-[1.05]">
         Your case, in 2 minutes.
       </h2>
@@ -642,7 +625,7 @@ export default function HonestSecondOpinion(props: NavProps) {
     </motion.div>
 
     {/* Minimalist flat card wrapper */}
-    <div className="bg-white rounded-[16px] border border-gray-200 p-6 md:p-12">
+    <div className="bg-white rounded-lg border border-gray-200 p-6 md:p-12">
 
       <form onSubmit={handleSubmit} className="space-y-8">
 
@@ -650,76 +633,76 @@ export default function HonestSecondOpinion(props: NavProps) {
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}
           className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
           <div>
-            <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">Your Name *</label>
+            <label className={labelClass}>Your Name *</label>
             <input 
               value={name} 
               onChange={e => setName(e.target.value)}
               placeholder="Full name" 
-              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400" 
+              className={inputClass}
             />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">Email *</label>
+            <label className={labelClass}>Email *</label>
             <input 
               type="email" 
               value={email} 
               onChange={e => setEmail(e.target.value)}
               placeholder="you@example.com" 
-              className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400" 
+              className={inputClass}
             />
           </div>
         </motion.div>
 
         {/* ── WhatsApp ────────────────────────────────────────────── */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
-          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">
+          <label className={labelClass}>
             WhatsApp Number <span className="text-gray-400 normal-case tracking-normal font-medium">(optional — for faster response)</span>
           </label>
           <input 
             value={whatsapp} 
             onChange={e => setWhatsapp(e.target.value)}
             placeholder="+971 50 000 0000" 
-            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400" 
+            className={inputClass}
           />
         </motion.div>
 
         {/* ── Diagnosis ───────────────────────────────────────────── */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
-          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">What have you been diagnosed with? *</label>
+          <label className={labelClass}>What have you been diagnosed with? *</label>
           <input 
             value={diagnosis} 
             onChange={e => setDiagnosis(e.target.value)}
             placeholder="e.g. Herniated L4-L5 disc, Stage 2 Breast Cancer, Coronary artery disease…"
-            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400" 
+            className={inputClass}
           />
         </motion.div>
 
         {/* ── Treatment ───────────────────────────────────────────── */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
-          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">What treatment has been recommended? *</label>
+          <label className={labelClass}>What treatment has been recommended? *</label>
           <input 
             value={treatment} 
             onChange={e => setTreatment(e.target.value)}
             placeholder="e.g. Spinal surgery, Chemotherapy, Angioplasty, Total knee replacement…"
-            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400" 
+            className={inputClass}
           />
         </motion.div>
 
         {/* ── Questions ───────────────────────────────────────────── */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
-          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">What do you want to know? *</label>
+          <label className={labelClass}>What do you want to know? *</label>
           <textarea 
             rows={4} 
             value={questions} 
             onChange={e => setQuestions(e.target.value)}
             placeholder={"e.g. Is surgery really necessary at this stage?\nAre there non-surgical alternatives?\nIs this diagnosis correct given my symptoms?"}
-            className="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-900 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-all placeholder:text-gray-400 resize-none" 
+            className={inputClass + ' resize-none'}
           />
         </motion.div>
 
         {/* ── File Upload ─────────────────────────────────────────── */}
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
-          <label className="block text-[11px] font-bold text-gray-900 uppercase tracking-wide mb-2.5">
+          <label className={labelClass}>
             Upload Your Reports
             <span className="text-gray-400 normal-case tracking-normal font-medium ml-2">
               — MRI, CT, blood tests, prescriptions (PDF, JPG, PNG · max {MAX_FILE_MB}MB each · up to {MAX_FILES} files)
@@ -732,13 +715,13 @@ export default function HonestSecondOpinion(props: NavProps) {
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`mt-2 border border-dashed rounded-xl cursor-pointer transition-all px-6 py-10 text-center ${
+            className={`mt-2 border border-dashed rounded-lg cursor-pointer transition-all px-6 py-10 text-center ${
               dragging
-                ? 'border-gray-900 bg-gray-50'
-                : 'border-gray-300 bg-gray-50/30 hover:border-gray-400 hover:bg-gray-50'
+                ? 'border-brand-blue bg-brand-blue/5'
+                : 'border-gray-300 bg-gray-50/30 hover:border-brand-blue/50 hover:bg-gray-50'
             }`}
           >
-            <UploadCloud className={`w-8 h-8 mx-auto mb-3 transition-colors ${dragging ? 'text-gray-900' : 'text-gray-400'}`} />
+            <UploadCloud className={`w-8 h-8 mx-auto mb-3 transition-colors ${dragging ? 'text-brand-blue' : 'text-gray-400'}`} />
             <p className="text-[13px] font-semibold text-gray-900 mb-1">
               {dragging ? 'Drop files here' : 'Drop files here, or click to browse'}
             </p>
@@ -798,7 +781,7 @@ export default function HonestSecondOpinion(props: NavProps) {
           {errorMsg && (
             <motion.div
               initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              className="flex items-start gap-2.5 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3"
+              className="flex items-start gap-2.5 bg-red-50 border border-red-100 text-red-700 text-sm rounded-lg px-4 py-3"
             >
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
@@ -811,7 +794,7 @@ export default function HonestSecondOpinion(props: NavProps) {
           <button
             type="submit"
             disabled={status === 'submitting'}
-            className="group w-full bg-gray-900 hover:bg-black text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="group w-full bg-brand-blue hover:bg-[#1565c0] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 transition-all shadow-lg shadow-brand-blue/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
           >
             {status === 'submitting' ? (
               <>

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gauos",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/gaurang/Desktop/retro-os-portfolio", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "portfolio-town",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["/Users/gaurang/Desktop/portfolio-town/serve.py", "8123", "/Users/gaurang/Desktop/portfolio-town"],
+      "port": 8123
+    }
+  ]
+}

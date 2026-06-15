@@ -82,7 +82,7 @@ export function Footer() {
           
           {/* 1. Big Title */}
           <h1 className="font-serif text-[13vw] md:text-[12vw] leading-[0.8] text-black tracking-tighter select-none whitespace-nowrap text-center md:text-left mb-6 md:mb-2">
-            My MediVoyage
+            MY MEDIVOYAGE
           </h1>
 
           {/* 2. Partition Line */}

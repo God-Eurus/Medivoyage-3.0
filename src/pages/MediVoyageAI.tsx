@@ -9,6 +9,10 @@ import { Footer } from '../components/Footer';
 import { MeshGradient } from '@paper-design/shaders-react';
 import { useAuth } from '../context/AuthContext';
 import { motion,AnimatePresence } from "framer-motion";
+import {
+  DOCTORS, type Doctor, type SpecialtyMatch,
+  detectSpecialty, doctorsForSpecialty,
+} from '../data/doctors';
 
 interface NavProps {
   onHomeClick?: () => void;
@@ -33,12 +37,13 @@ const trustBadges = [
 
 // ── Specialty quick-start chips (shown above the input before chat starts) ──
 const quickStartTopics = [
-  { label: 'Symptom check',      prompt: 'I have a symptom I want to understand — let me describe it.' },
-  { label: 'Medication question', prompt: 'I have a question about a medication I take.' },
-  { label: 'Diabetes',            prompt: 'Help me understand my diabetes management.' },
-  { label: 'Heart health',        prompt: 'I want to understand my heart health and blood pressure.' },
-  { label: 'Mental wellness',     prompt: "I'd like to talk about how I've been feeling lately." },
-  { label: 'Sleep',               prompt: "I've been having trouble sleeping. What should I do?" },
+  { label: 'Symptom check',     prompt: 'I have a symptom I want to understand — let me describe it.' },
+  { label: 'Talk to a doctor',  prompt: 'I want to talk to a doctor.' },
+  { label: 'Diabetes',          prompt: 'Help me understand my diabetes management.' },
+  { label: 'Heart health',      prompt: 'I want to understand my heart health and blood pressure.' },
+  { label: 'Bone & joint pain', prompt: 'My joints have been hurting. What can I do?' },
+  { label: 'Mental wellness',   prompt: "I'd like to talk about how I've been feeling lately." },
+  { label: 'Sleep',             prompt: "I've been having trouble sleeping. What should I do?" },
 ];
 
 // ── localStorage keys for chat persistence (Doctronic-style "remembers you") ─
@@ -182,76 +187,294 @@ const doctorRoster = [
 interface ChatMessage {
   role: 'user' | 'bot';
   text: string;
+  doctorIds?: string[]; // when set, doctor cards render under this bot message
 }
 
-// ── Simple medical knowledge base — keyword matcher ──────────────────────────
-function getResponse(query: string): string {
+interface BotReply {
+  text: string;
+  doctorIds?: string[];
+  specialty?: SpecialtyMatch; // remembered so "talk to a doctor" later matches the right specialists
+}
+
+// ── Wellness knowledge base — no medicine suggestions, only self-care, ───────
+// exercises, lifestyle guidance and clear "when to see a doctor" red flags.
+// Each topic can tag a specialty so a later "connect me to a doctor" request
+// matches the right specialists from our roster.
+const CONNECT_HINT = '\n\nIf you\'d like to discuss this with a specialist, just say "connect me to a doctor" and I\'ll match you with the right one.';
+
+interface TopicRule {
+  pattern: RegExp;
+  reply: string;
+  specialtyTags?: string[];
+  specialtyLabel?: string;
+}
+
+const TOPIC_RULES: TopicRule[] = [
+  {
+    pattern: /headache|migraine/,
+    reply: "Most headaches are tension-related and ease with simple care: rest in a quiet, dim room, drink 2–3 glasses of water (dehydration is the most common trigger), and try a cold compress on your forehead or a warm one on the back of your neck. Slow neck rolls and shoulder shrugs help release tension, and taking regular breaks from screens prevents recurrence. 🚩 See a doctor urgently if it's a sudden 'worst-ever' headache, comes with fever and a stiff neck, vision changes, or weakness on one side." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /fever|temperature/,
+    reply: "A fever is your body fighting an infection — supporting it usually works better than fighting it. Rest as much as you can, sip fluids constantly (water, soups, ORS, coconut water), wear light clothing, and sponge with lukewarm (not cold) water if you feel very hot. Eat light, easy foods when hungry. 🚩 See a doctor if the fever lasts more than 3 days, climbs very high, or comes with a stiff neck, rash, severe headache, or trouble breathing." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /cough|cold|flu|sore throat/,
+    reply: "Most coughs and colds are viral and clear up on their own in 7–10 days. Soothe your throat with warm water and honey, gargle with warm salt water 2–3 times a day, inhale steam to loosen congestion, and rest — sleep is when your immune system does its best work. Keep your room humidified if the air is dry. 🚩 See a doctor if the cough lasts over 3 weeks, you cough up blood, or you're short of breath." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /back pain|back hurt|backache|lower back/,
+    reply: "Most back pain comes from muscle strain and improves with movement, not bed rest. Keep gently active with short walks, apply heat for 15–20 minutes at a time, and try easy stretches: cat-cow, knee-to-chest, and child's pose. Avoid sitting for more than 30–40 minutes without standing up. Over the next weeks, core-strengthening (bridges, bird-dog) prevents it coming back. 🚩 See a doctor if you have numbness or tingling in your legs, weakness, or loss of bladder/bowel control." + CONNECT_HINT,
+    specialtyTags: ['Orthopedics'], specialtyLabel: 'orthopaedic',
+  },
+  {
+    pattern: /neck pain|stiff neck|shoulder pain|frozen shoulder/,
+    reply: "Neck and shoulder pain usually traces back to posture and screen habits. Try chin tucks (pull your head straight back, hold 5 seconds, ×10), slow shoulder rolls, and gentle side-to-side stretches. Raise your screen to eye level, and check your pillow — it should keep your neck in line with your spine. A warm shower or compress relaxes tight muscles. 🚩 See a doctor if pain shoots down your arm, you have numbness in fingers, or it followed an injury." + CONNECT_HINT,
+    specialtyTags: ['Orthopedics'], specialtyLabel: 'orthopaedic',
+  },
+  {
+    pattern: /knee|joint pain|hip pain|ankle|wrist|elbow/,
+    reply: "Joint pain responds well to the right kind of movement. Low-impact activity — swimming, cycling, walking on flat ground — keeps joints nourished without pounding them. For knees, gentle quad strengthening (straight-leg raises, wall sits) takes pressure off the joint. If there's swelling, rest it, ice 15 minutes a few times a day, and keep it elevated. Maintaining a healthy weight is the single biggest favour you can do your knees and hips. 🚩 See a doctor if the joint is hot, very swollen, won't bear weight, or keeps locking." + CONNECT_HINT,
+    specialtyTags: ['Orthopedics'], specialtyLabel: 'orthopaedic',
+  },
+  {
+    pattern: /sprain|twisted|fracture|injur|fell down|sports injury/,
+    reply: "For a fresh sprain or minor injury, remember RICE: Rest the area, Ice it for 15–20 minutes every 2–3 hours for the first day or two, Compress gently with an elastic bandage, and Elevate above heart level when possible. After 48 hours, gentle movement helps recovery more than total rest. 🚩 Get it checked by a doctor if you can't bear weight, there's a visible deformity, severe swelling, or the pain isn't easing after a few days." + CONNECT_HINT,
+    specialtyTags: ['Orthopedics'], specialtyLabel: 'orthopaedic',
+  },
+  {
+    pattern: /arthritis|joint stiff|stiffness/,
+    reply: "Morning stiffness and arthritis respond well to a daily rhythm: a warm shower or compress when you wake, followed by gentle range-of-motion exercises before the day starts. Movement is medicine here — short, frequent walks beat long rest. Swimming and water exercise are especially kind to arthritic joints. Anti-inflammatory eating patterns (vegetables, fruits, fish, nuts, less fried and processed food) help many people. 🚩 See a doctor if joints are red, hot, or progressively deforming." + CONNECT_HINT,
+    specialtyTags: ['Orthopedics'], specialtyLabel: 'orthopaedic',
+  },
+  {
+    pattern: /stomach|nausea|vomit|diarrhea|diarrhoea|belly|loose motion|food poison/,
+    reply: "Most stomach upsets pass in 24–72 hours with supportive care. The priority is staying hydrated: small, frequent sips of water, ORS, coconut water or clear soups — little and often beats large gulps. When you feel like eating, start bland and small: rice, bananas, toast, curd. Rest, and wash hands thoroughly to avoid spreading it. 🚩 See a doctor if there's blood in stool or vomit, signs of dehydration (very dark urine, dizziness), high fever, or it lasts beyond 3 days." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /constipat/,
+    reply: "Constipation usually responds to three things done consistently: more fibre (fruits, vegetables, whole grains, soaked raisins or prunes), more water (aim for 8+ glasses), and more movement (even a 20-minute daily walk stimulates the gut). Try going at the same time daily — the body loves routine — and raising your feet on a small stool while on the toilet puts you in a more natural position. 🚩 See a doctor if there's blood, severe pain, or it persists beyond 2 weeks despite these changes." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /acidity|heartburn|acid reflux|gerd|gas |bloat/,
+    reply: "Acidity and reflux usually improve with eating habits more than anything else: smaller meals eaten slowly, dinner at least 2–3 hours before lying down, and identifying your personal triggers (commonly spicy, fried, citrus, caffeine, and carbonated drinks). Raising the head of your bed slightly helps night-time reflux, and walking 10 minutes after meals aids digestion. 🚩 See a doctor if you have difficulty swallowing, unintended weight loss, or symptoms several times a week." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /blood pressure|\bbp\b|hypertension/,
+    reply: "Normal blood pressure is under 120/80. Lifestyle moves the needle a lot here: cut down on salt and packaged foods, walk briskly 30 minutes most days, manage stress with slow breathing (5 minutes of inhale-4, exhale-6 measurably lowers BP), sleep 7–8 hours, and limit alcohol. Track readings at home at the same time daily — your doctor will want that log. 🚩 If readings stay above 140/90 across multiple days, see a doctor; above 180/120 with symptoms, seek urgent care." + CONNECT_HINT,
+    specialtyTags: ['Cardiology'], specialtyLabel: 'heart',
+  },
+  {
+    pattern: /heart|cardiac|chest pain|palpitation|angina/,
+    reply: "🚩 First: chest pain with sweating, breathlessness, or pain spreading to the arm or jaw needs emergency care immediately — call 102/108 (India) or your local emergency number. For general heart health: 30 minutes of brisk walking most days, a diet built on vegetables, whole grains, and healthy fats, no smoking, managed stress and good sleep are the proven foundations. Occasional brief palpitations with stress or caffeine are common, but recurring ones deserve a check-up." + CONNECT_HINT,
+    specialtyTags: ['Cardiology'], specialtyLabel: 'heart',
+  },
+  {
+    pattern: /cholesterol|ldl|hdl|triglyceride/,
+    reply: "Cholesterol improves meaningfully with food and movement: soluble fibre (oats, beans, fruits) actively pulls LDL down, a small daily handful of nuts helps, and swapping fried and processed foods for grilled or home-cooked makes a real difference. Regular aerobic exercise raises your protective HDL. Get a lipid panel yearly to track progress, and discuss results with a doctor who can see your whole risk picture." + CONNECT_HINT,
+    specialtyTags: ['Cardiology'], specialtyLabel: 'heart',
+  },
+  {
+    pattern: /diabetes|blood sugar|insulin|a1c|sugar level/,
+    reply: "Blood sugar management is built on daily habits: fill half your plate with vegetables, quarter with protein, quarter with whole grains; take a 10–15 minute walk after meals (this blunts sugar spikes remarkably well); strength-train twice a week; and protect your sleep — poor sleep directly worsens sugar control. Check your feet daily and get your eyes screened yearly. Work with a doctor on targets and monitoring — everyone's plan is personal." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /anxiety|depress|panic|stress|mental|overwhelm|burnout/,
+    reply: "What you're feeling is common and very treatable — and small daily practices genuinely help. For acute anxiety, try 4-7-8 breathing (inhale 4s, hold 7s, exhale 8s, repeat 4 times) or the 5-4-3-2-1 grounding technique (name 5 things you see, 4 you can touch, 3 you hear, 2 you smell, 1 you taste). Daily sunlight walks, regular exercise, limiting late-night screens, and talking to someone you trust all have solid evidence behind them. Therapy works — it's a sign of strength, not weakness. 🚩 If you ever have thoughts of self-harm, please reach out now: iCall +91-9152987821 (India), 988 (US), Samaritans 116 123 (UK)." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /sleep|insomnia|can'?t sleep|sleepless/,
+    reply: "Good sleep is built during the day: get morning sunlight within an hour of waking, cut caffeine after noon, keep your room cool and dark, and go to bed and wake at the same time daily — even weekends. The hour before bed, dim lights and swap screens for something calm. If you can't sleep after 20 minutes, get up and do something quiet until drowsy, then return. Most insomnia responds to these habits within 2–3 weeks. 🚩 If you snore heavily and wake unrefreshed, ask a doctor about sleep apnea." + CONNECT_HINT,
+  },
+  {
+    pattern: /medication|medicine|tablet|dosage|prescri|drug/,
+    reply: "I don't suggest or recommend medicines — that decision belongs with a licensed doctor who knows your full history, and a pharmacist for usage questions. What I can do is help you understand your condition, share lifestyle and self-care approaches, and connect you with the right specialist from our panel for a proper consultation." + CONNECT_HINT,
+  },
+  {
+    pattern: /diet|nutrition|healthy eating|weight loss|protein|lose weight|obesity/,
+    reply: "The eating pattern with the best long-term evidence is simple: mostly plants (vegetables, fruits, legumes, whole grains), adequate protein at each meal, healthy fats from nuts and seeds, and minimal ultra-processed food and sugary drinks. For weight loss, sustainable beats fast: a modest daily calorie reduction plus strength training preserves muscle while fat comes off. Don't drink your calories, fill half the plate with vegetables, and be patient — habits that last beat diets that end." + CONNECT_HINT,
+  },
+  {
+    pattern: /exercise|workout|fitness|gym|physical activity/,
+    reply: "The global guideline is 150 minutes of moderate activity weekly plus 2 strength sessions — but anything beats nothing, and consistency beats intensity. A great starter week: brisk 30-minute walks ×5, plus two short bodyweight sessions (squats, push-ups against a wall or floor, planks, glute bridges). Stretch after, not before. Progress by adding a little each week, and pick something you enjoy — that's the real secret to sticking with it." + CONNECT_HINT,
+  },
+  {
+    pattern: /pregnan|period|menstrual|pms|cramp/,
+    reply: "For period cramps, heat is genuinely effective — a hot water bag on the lower belly, plus gentle movement like walking or light yoga (child's pose, cat-cow) eases most cramps. Staying hydrated and cutting excess salt reduces bloating. Track your cycle for a few months — patterns help a doctor enormously. For pregnancy, early and regular check-ups are the single best thing you can do. 🚩 See a gynaecologist if periods are very heavy, severely painful, or irregular for 3+ months." + CONNECT_HINT,
+    specialtyTags: ['Obstetrics & Gynaecology', 'Fertility & IVF'], specialtyLabel: "women's health",
+  },
+  {
+    pattern: /pcos|pcod|hormonal|menopause|thyroid/,
+    reply: "Hormonal balance responds strongly to lifestyle foundations: regular strength training and walking improve insulin sensitivity (central in PCOS), 7–8 hours of consistent sleep regulates hormone rhythms, and a whole-food diet with adequate protein steadies energy and mood. Stress management matters more than most people expect — chronic stress directly disrupts hormonal cycles. These conditions deserve proper evaluation and ongoing care from a specialist who can run the right tests." + CONNECT_HINT,
+    specialtyTags: ['Obstetrics & Gynaecology', 'Fertility & IVF'], specialtyLabel: "women's health",
+  },
+  {
+    pattern: /ivf|fertility|infertil|conceiv|trying for a baby|iui/,
+    reply: "Fertility has more in your control than it often feels: both partners benefit from a nutrient-rich diet, regular moderate exercise, healthy weight, quitting smoking and limiting alcohol, and managing stress — all measurably improve outcomes. Timing matters too: the fertile window is roughly 5 days before ovulation through ovulation day. If you've been trying for over a year (or 6 months if over 35), a fertility evaluation for both partners is the right next step — and modern options like IUI and IVF have excellent success rates." + CONNECT_HINT,
+    specialtyTags: ['Fertility & IVF', 'Obstetrics & Gynaecology'], specialtyLabel: 'fertility',
+  },
+  {
+    pattern: /rash|itch|skin|acne|eczema|pimple/,
+    reply: "Healthy skin basics: wash with a gentle cleanser twice daily (over-washing makes most skin issues worse), moisturise while skin is still damp, use sunscreen daily, and resist picking or squeezing — that's what causes scarring. For itchy patches, a cool compress calms flare-ups, and fragrance-free products reduce irritation. Diet-wise, more water and whole foods, less sugar and fried food helps many people. 🚩 See a doctor for rashes with fever, rapid spreading, or anything new that doesn't fade in 2 weeks." + CONNECT_HINT,
+  },
+  {
+    pattern: /hair loss|hair fall|baldness|thinning hair/,
+    reply: "Hair loss usually has identifiable causes worth ruling out: stress, crash dieting, low iron, thyroid imbalance, and post-illness shedding are all common and reversible. Support recovery with adequate protein (hair is protein!), a varied whole-food diet, gentle hair care (avoid tight hairstyles and excessive heat), and stress management. If shedding is sudden, patchy, or persistent beyond 3 months, a doctor can run simple blood tests to find the cause." + CONNECT_HINT,
+  },
+  {
+    pattern: /eye strain|eyes hurt|dry eyes|blurry|vision/,
+    reply: "Screen-heavy days strain eyes in predictable ways — and the fix is simple: follow the 20-20-20 rule (every 20 minutes, look at something 20 feet away for 20 seconds), blink consciously (we blink 60% less at screens), keep screens slightly below eye level and about an arm's length away, and reduce glare from windows or overhead lights. 🚩 See an eye specialist if you have sudden vision changes, flashes, floaters, or eye pain — those need prompt attention." + CONNECT_HINT,
+  },
+  {
+    pattern: /tooth|teeth|dental|gum|cavity|bad breath/,
+    reply: "For tooth or gum discomfort, rinse with warm salt water 2–3 times daily, brush gently twice a day with a soft brush, floss daily, and avoid very hot, cold, or sugary foods that trigger sensitivity. Bleeding gums usually signal early gum disease — better brushing and flossing reverses it within weeks. Persistent tooth pain almost always means something a dentist needs to look at — dental issues don't heal themselves and early treatment is simpler and cheaper." + CONNECT_HINT,
+    specialtyTags: ['Dentistry'], specialtyLabel: 'dental',
+  },
+  {
+    pattern: /allerg|sneez|hay fever|pollen/,
+    reply: "Allergy management is mostly about smart avoidance: track what triggers you (season, dust, foods, pets), rinse your nose with saline after being outdoors, shower and change clothes after high-pollen exposure, keep windows closed during peak pollen hours (early morning), and wash bedding weekly in hot water for dust mites. A clean, well-ventilated sleeping space makes the biggest difference for most people. 🚩 Any swelling of lips/face or difficulty breathing after exposure is an emergency." + CONNECT_HINT,
+  },
+  {
+    pattern: /asthma|wheez|breathing difficult|short of breath/,
+    reply: "🚩 Severe breathing difficulty is always an emergency — seek care immediately. For day-to-day breathing health: identify and minimise your triggers (smoke, dust, cold air, strong scents), practice belly breathing (slow inhale through nose into the belly, longer exhale), keep your home well-ventilated and dust-free, and stay active — regular gentle cardio actually improves lung capacity over time. Anyone with recurring wheeze or breathlessness should have a proper evaluation and a written action plan from a doctor." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /urin|uti|burning sensation|bladder/,
+    reply: "For urinary discomfort, drink plenty of water to keep things flushing through, don't hold urine when you feel the urge, urinate after intimacy, and maintain gentle front-to-back hygiene. Avoid harsh soaps in that area. Most importantly: genuine burning, urgency, or cloudy urine usually means an infection that needs proper diagnosis — these don't tend to clear fully on their own, and untreated UTIs can climb to the kidneys. 🚩 Fever with back pain alongside urinary symptoms needs a doctor today." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /kidney stone|renal stone/,
+    reply: "If you've had a kidney stone (or want to avoid one): water is your best friend — aim for enough that your urine stays pale, around 2.5–3 litres daily. Cut down on salt, go easy on red meat, and add citrus (lemon water) which naturally inhibits stone formation. Most small stones pass on their own with hydration and patience. 🚩 Severe flank pain, blood in urine, fever, or vomiting with stone pain needs urgent medical attention." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /piles|hemorrhoid|haemorrhoid|fissure/,
+    reply: "Piles are extremely common and usually improve with consistent habits: plenty of fibre and water to keep stools soft, never straining or sitting long on the toilet (leave the phone outside!), warm sitz baths for 10–15 minutes which soothe and promote healing, and staying active. Most flare-ups settle within a week or two of these changes. 🚩 See a doctor for persistent bleeding, severe pain, or anything that doesn't improve — effective and simple treatments exist." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /fatigue|tired all|low energy|weakness|exhausted/,
+    reply: "Persistent fatigue deserves a systematic look at the basics: are you sleeping 7–9 hours on a regular schedule? Drinking enough water? Eating balanced meals (skipping meals and sugar crashes are classic culprits)? Moving daily — paradoxically, light exercise raises energy? And managing stress, which drains more energy than physical work? If fatigue persists beyond a few weeks despite good habits, simple blood tests can check for anaemia, thyroid, vitamin D and B12 — all common, all fixable." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /dizz|vertigo|lightheaded|faint/,
+    reply: "When dizziness hits: sit or lie down immediately, and rise slowly in stages when getting up (lie → sit → wait → stand). Common everyday causes are dehydration, skipped meals, standing up too fast, and poor sleep — so hydrate well and eat regularly. For spinning-type vertigo, keeping your head still and focusing on a fixed point helps the moment pass. 🚩 Dizziness with chest pain, slurred speech, weakness on one side, or fainting needs emergency care." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /dengue|malaria|typhoid|mosquito|chikungunya/,
+    reply: "Mosquito-borne illnesses need respect: if you have high fever with body aches, severe headache or rash during dengue season, get tested promptly — early diagnosis matters. Meanwhile: rest fully, push fluids constantly (water, ORS, coconut water, soups), and monitor for warning signs. Prevention is powerful: eliminate standing water around home, use repellent and nets, and wear full sleeves at dawn/dusk. 🚩 Bleeding gums, severe abdominal pain, persistent vomiting, or extreme lethargy during a fever = hospital now." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /child|baby|kid|infant|toddler/,
+    reply: "For a child with mild illness: keep them rested, hydrated (frequent small sips — milk, water, ORS), in light clothing, and monitor their temperature. Lukewarm sponging helps with fever comfort. Children bounce back fast with rest and fluids, but they also change fast: 🚩 see a doctor promptly for any fever in babies under 3 months, refusal to drink, unusual drowsiness, fast or laboured breathing, a rash that doesn't fade under pressure, or anything that makes your parental instinct uneasy — trust it." + CONNECT_HINT,
+    specialtyTags: ['General Surgery'], specialtyLabel: 'general medicine',
+  },
+  {
+    pattern: /immunity|immune|stay healthy|prevent illness/,
+    reply: "There's no shortcut to immunity, but the fundamentals work remarkably well: 7–9 hours of quality sleep (the single biggest lever), a colourful diet of vegetables and fruits, regular moderate exercise, sunlight exposure for vitamin D, managed stress, and staying current on vaccinations. Hand-washing remains the most underrated illness-prevention tool ever invented. Consistency in these beats any supplement on the market." + CONNECT_HINT,
+  },
+  {
+    pattern: /smok|cigarette|tobacco|quit smoking/,
+    reply: "Deciding to quit is the most powerful health move available to a smoker — within 24 hours your heart already benefits, and within a year your cardiac risk halves. What works: pick a quit date, remove triggers (lighters, ashtrays, routines tied to smoking), tell people for accountability, and have a plan for cravings — they pass in 3–5 minutes, so a walk, water, or deep breathing bridges the gap. Most people need a few attempts; each one teaches you something. Professional support genuinely doubles success rates." + CONNECT_HINT,
+  },
+  {
+    pattern: /alcohol|drinking problem|hangover/,
+    reply: "If you're rethinking your relationship with alcohol, that reflection itself is valuable. Practical steps: set a weekly limit and track honestly, have alcohol-free days, never drink on an empty stomach, alternate with water, and notice your triggers (stress? social pressure? habit?). Sleep, mood, skin and energy all improve within weeks of cutting back — quick wins worth noticing. If cutting down feels harder than expected, talking to a doctor is a confidential, judgement-free starting point." + CONNECT_HINT,
+  },
+  {
+    pattern: /cancer|tumor|tumour|chemo|oncolog|lump/,
+    reply: "A cancer concern deserves expert eyes, not internet anxiety. What helps right now: don't panic — many lumps and symptoms turn out benign, but do act — early evaluation dramatically improves outcomes for anything serious. Bring a written list of symptoms and timeline to your appointment. Screening saves lives: clinical breast exams and mammograms, cervical screening, and colonoscopy from the recommended ages. And for any major diagnosis, a second opinion before big treatment decisions is always reasonable — good doctors welcome it." + CONNECT_HINT,
+    specialtyTags: ['Medical Oncology'], specialtyLabel: 'cancer care',
+  },
+  {
+    pattern: /vitamin|supplement|mineral/,
+    reply: "Food-first beats pills for almost everyone: vitamin D from sensible morning sunlight, B12 from dairy/eggs/fish (vegans should get levels checked), iron from greens, legumes and jaggery paired with vitamin C for absorption, and calcium from dairy, ragi and sesame. Supplements make sense only for confirmed deficiencies — random mega-doses of fat-soluble vitamins (A, D, E, K) can actually accumulate to harmful levels. A simple blood panel tells you what you actually need." + CONNECT_HINT,
+  },
+  {
+    pattern: /medivoyage|medical tourism|treatment abroad|india treatment/,
+    reply: "MediVoyage helps international patients access world-class care in India at a fraction of Western costs. We partner with JCI-accredited hospitals, and our concierge handles everything: visa, travel, accommodation, hospital coordination, and follow-up. Explore the Treatments page for transparent fixed pricing, or fill the inquiry form for a free personalised quote." + CONNECT_HINT,
+  },
+];
+
+// ── Doctor-intent detection ──────────────────────────────────────────────────
+const DOCTOR_INTENT = /\b(talk|speak|chat|connect|book|schedule)\b[\s\S]{0,40}\b(doctor|dr\b|physician|specialist|agent|human|someone|expert|consult)/i;
+const DOCTOR_INTENT_ALT = /\b(need|want|see|get me|find me|refer)\b[\s\S]{0,20}\b(a |an )?(doctor|physician|specialist|appointment|consult)/i;
+const DOCTOR_INTENT_SIMPLE = /\b(appointment|consultation|teleconsult|real (doctor|person|human)|live agent|customer (care|support))\b/i;
+const SHOW_ALL_DOCTORS = /\b(show|list|view|see)\b[\s\S]{0,20}\b(all\s+)?(your\s+)?doctors?\b|\ball doctors\b|\bdoctor list\b/i;
+
+function getResponse(query: string, ctx: { lastSpecialty: SpecialtyMatch | null; hasAccess: boolean }): BotReply {
   const q = query.toLowerCase().trim();
 
+  // 1 — Emergencies always come first
   if (/heart attack|stroke|severe bleeding|can'?t breathe|unconscious|suicid|chest pain.*(arm|jaw|sweat)|seizure/i.test(q)) {
-    return "🚨 This sounds like a medical emergency. Please call your local emergency number immediately — 911 (US), 999 (UK), 112 (EU), or 102/108 (India). Do not wait.";
+    return { text: "🚨 This sounds like a medical emergency. Please call your local emergency number immediately — 102/108 (India), 911 (US), 999 (UK), 112 (EU). Do not wait for an online chat." };
   }
-  if (q.includes('headache') || q.includes('migraine')) {
-    return "Most headaches are tension or migraine and resolve with rest. Try: hydrate well, dim the lights, and take ibuprofen (400mg) or acetaminophen (500mg). 🚩 See a doctor urgently if: sudden 'thunderclap' onset, fever with stiff neck, vision changes, weakness on one side, or confusion.";
+
+  // 2 — "Show me all doctors"
+  if (SHOW_ALL_DOCTORS.test(q)) {
+    return {
+      text: ctx.hasAccess
+        ? "Here's our full specialist panel. Tap any doctor to schedule a teleconsultation."
+        : "Here's our full specialist panel. Tap a doctor to schedule a teleconsultation — consultations are part of the MediVoyage plan ($9/year).",
+      doctorIds: DOCTORS.map((d) => d.id),
+    };
   }
-  if (q.includes('fever') || q.includes('temperature')) {
-    return "A fever is usually a sign your body is fighting infection. Adults: rest, fluids, and acetaminophen or ibuprofen for comfort. See a doctor if temp stays above 103°F (39.4°C), lasts more than 3 days, or comes with stiff neck, severe headache, rash, or breathing trouble.";
+
+  // 3 — "I want to talk to a doctor / agent / human"
+  if (DOCTOR_INTENT.test(q) || DOCTOR_INTENT_ALT.test(q) || DOCTOR_INTENT_SIMPLE.test(q)) {
+    // Specialty mentioned in this same message wins; else use conversation context
+    const specialty = detectSpecialty(q) ?? ctx.lastSpecialty;
+
+    if (specialty) {
+      const docs = doctorsForSpecialty(specialty.tags);
+      return {
+        text: `Of course. Based on what you've shared, here ${docs.length === 1 ? 'is' : 'are'} our ${specialty.label} specialist${docs.length === 1 ? '' : 's'} — tap a doctor to schedule a teleconsultation.`,
+        doctorIds: docs.map((d) => d.id),
+        specialty,
+      };
+    }
+
+    // No context yet — offer general physicians and invite specifics
+    const generals = doctorsForSpecialty(['General Surgery']);
+    return {
+      text: "Happy to connect you with a doctor. Here are our general physicians — or tell me what's bothering you (for example: knee pain, fertility, heart, dental) and I'll match you with the right specialist.",
+      doctorIds: generals.map((d) => d.id),
+    };
   }
-  if (q.includes('cough') || q.includes('cold') || q.includes('flu') || q.includes('sore throat')) {
-    return "Most coughs and colds are viral and resolve in 7–10 days. Try honey + warm water, saline gargle, steam inhalation, and rest. See a doctor if cough lasts >3 weeks, you cough up blood, have shortness of breath, or fever over 102°F that doesn't break.";
+
+  // 4 — Wellness knowledge base
+  for (const rule of TOPIC_RULES) {
+    if (rule.pattern.test(q)) {
+      const specialty = rule.specialtyTags
+        ? { tags: rule.specialtyTags, label: rule.specialtyLabel ?? 'relevant' }
+        : undefined;
+      return { text: rule.reply, specialty };
+    }
   }
-  if (q.includes('back pain') || q.includes('back hurt') || q.includes('pulled') || q.includes('lifting')) {
-    return "Acute back pain from lifting is usually a muscle strain. Treatment: ice for 48 hours then heat, OTC ibuprofen, and gentle movement (avoid bed rest beyond 1–2 days). 🚩 See a doctor if: numbness or tingling in legs, loss of bladder/bowel control, weakness, or pain that radiates below the knee.";
-  }
-  if (q.includes('stomach') || q.includes('nausea') || q.includes('vomit') || q.includes('diarrhea') || q.includes('belly')) {
-    return "Most GI upsets are viral or food-related and resolve in 24–72 hours. Stay hydrated with small sips of water or ORS. BRAT diet: bananas, rice, applesauce, toast. See a doctor if: blood in stool/vomit, severe dehydration, fever >102°F, or symptoms lasting >3 days.";
-  }
-  if (q.includes('blood pressure') || q.includes('bp') || q.includes('hypertension')) {
-    return "Normal BP is under 120/80. 130–139/80–89 is elevated, 140+/90+ is Stage 1 Hypertension. Reduce sodium (<2g/day), exercise 30 min/day, lose excess weight, limit alcohol. If readings stay above 140/90, talk to a doctor — common first-line meds are amlodipine, lisinopril, or losartan.";
-  }
-  if (q.includes('diabetes') || q.includes('blood sugar') || q.includes('insulin') || q.includes('a1c')) {
-    return "Normal fasting glucose is 70–99 mg/dL. 100–125 is prediabetes, 126+ is diabetes. HbA1c <5.7% is normal, 5.7–6.4 prediabetes, 6.5+ diabetes. Management: low-carb diet, 150 min exercise/week, weight loss. Common meds: metformin first-line, then GLP-1 agonists, SGLT2 inhibitors, or insulin.";
-  }
-  if (q.includes('anxiety') || q.includes('depress') || q.includes('panic') || q.includes('stress') || q.includes('mental')) {
-    return "Anxiety and depression are common and treatable. Evidence-based: cognitive behavioral therapy (CBT), regular exercise, sleep hygiene, and sometimes SSRIs like sertraline or escitalopram. Try 4-7-8 breathing for panic (inhale 4s, hold 7s, exhale 8s). 🚩 If you have thoughts of self-harm, please call 988 (US), Samaritans 116 123 (UK), or iCall +91-9152987821 (India).";
-  }
-  if (q.includes('sleep') || q.includes('insomnia') || q.includes("can't sleep")) {
-    return "Aim for 7–9 hours. Sleep hygiene: consistent schedule, no screens 1hr before bed, cool dark room (65–68°F), no caffeine after noon. For chronic insomnia, CBT-I is more effective than sleeping pills. Short-term, melatonin 0.5–3mg, 30 min before bed can help.";
-  }
-  if (q.includes('cholesterol') || q.includes('ldl') || q.includes('hdl') || q.includes('triglyceride')) {
-    return "Target LDL <100 mg/dL, HDL >40 (men) / >50 (women), Triglycerides <150. Reduce saturated fat, increase fiber, exercise. If LDL stays high or you have other risk factors, statins (atorvastatin, rosuvastatin) are first-line and very effective.";
-  }
-  if (q.includes('medication') || q.includes('medicine') || q.includes('drug') || q.includes('side effect') || q.includes('dosage')) {
-    return "Always take medications as prescribed. Never share prescription medications. Common interactions: NSAIDs + blood thinners = bleeding risk; statins + grapefruit = increased side effects; SSRIs + tramadol = serotonin syndrome. For specific dosage or side effects, consult your pharmacist.";
-  }
-  if (q.includes('diet') || q.includes('nutrition') || q.includes('eat') || q.includes('weight loss') || q.includes('protein')) {
-    return "For most adults: Mediterranean-style diet wins — vegetables, fruits, whole grains, fish, olive oil, nuts. Protein target: 0.8–1.2 g/kg body weight (more if active). For weight loss, a 500 kcal/day deficit gives ~1 lb/week. Skip ultra-processed foods, sugary drinks, and excessive refined carbs.";
-  }
-  if (q.includes('exercise') || q.includes('workout') || q.includes('fitness') || q.includes('gym')) {
-    return "WHO recommends 150 min moderate or 75 min vigorous aerobic activity per week + 2 strength sessions. Beginners: start with brisk walking 30 min × 5 days, add bodyweight squats, push-ups, planks. Strength training preserves muscle mass and boosts metabolism long-term.";
-  }
-  if (q.includes('pregnan') || q.includes('period') || q.includes('menstrual') || q.includes('pms')) {
-    return "Pregnancy basics: take folic acid 400–800mcg daily even before conception, avoid alcohol/smoking/raw fish/unpasteurized cheese. First prenatal visit ideally 8–10 weeks. For irregular or painful periods, track cycles for 3 months and discuss with a gynecologist — could be PCOS, endometriosis, or thyroid related.";
-  }
-  if (q.includes('rash') || q.includes('itch') || q.includes('skin') || q.includes('acne') || q.includes('eczema')) {
-    return "Acne: gentle cleanser, benzoyl peroxide 2.5% + adapalene 0.1% gel; if severe, see a dermatologist. Eczema: moisturize 2–3x daily with thick cream (CeraVe, Vanicream), topical hydrocortisone 1% for flare-ups. For new rashes with fever, blistering, or rapidly spreading — see a doctor today.";
-  }
-  if (q.includes('medivoyage') || q.includes('medical tourism') || q.includes('treatment abroad') || q.includes('india treatment')) {
-    return "MediVoyage helps international patients access world-class care in India at 1/10th the cost of Western countries. We partner with JCI-accredited hospitals (Apollo, Fortis, Medanta, Manipal). We handle visa, travel, accommodation, hospital coordination, and follow-up. Click 'Book Now' on the homepage or fill the inquiry form for a free quote.";
-  }
-  if (q.includes('cancer') || q.includes('tumor') || q.includes('chemo') || q.includes('oncolog')) {
-    return "Cancer treatment depends heavily on type, stage, and patient health — surgery, chemotherapy, radiation, immunotherapy, and targeted therapy are all options. Get a second opinion before major treatment decisions. Key screening: colonoscopy from 45, mammogram from 40–50, low-dose CT for smokers 50+, Pap smear from 21.";
-  }
-  if (q.includes('vitamin') || q.includes('supplement') || q.includes('mineral')) {
-    return "Most healthy adults eating a varied diet don't need supplements. Common deficiencies worth checking: Vitamin D (600–800 IU daily), B12 (especially vegans/older adults), iron (especially menstruating women), and omega-3s. Skip mega-doses — fat-soluble vitamins (A, D, E, K) can build up to toxic levels.";
-  }
-  if (/^(hi|hello|hey|yo|sup|greetings)/i.test(q)) {
-    return "Hi! I'm MediVoyage AI. I can help with symptoms, medications, conditions, nutrition, mental health, or medical tourism questions. What's on your mind today?";
+
+  // 5 — Small talk + fallback
+  if (/^(hi|hello|hey|yo|sup|greetings|namaste)/i.test(q)) {
+    return { text: "Hi! I'm MediVoyage AI. I can help you understand symptoms, share self-care and exercise guidance, and connect you with the right specialist from our panel. What's on your mind today?" };
   }
   if (q.includes('thank')) {
-    return "You're welcome! Stay healthy. Feel free to ask anything else — and remember, for anything urgent or unclear, please see a real doctor.";
+    return { text: "You're welcome! Stay healthy — and if you'd ever like to speak with one of our doctors, just ask and I'll set it up." };
   }
-  return "I can help with a wide range of health topics — symptoms, medications, conditions, nutrition, mental health, and medical tourism. Could you share a bit more detail? For example: \"I've had a headache for 2 days\" or \"My blood pressure was 145/92.\" ⚠️ For emergencies, always call your local emergency number.";
+  return {
+    text: "I can help with a wide range of health topics — symptoms, conditions, nutrition, exercise, sleep, mental wellness, and more. Tell me a bit more, for example: \"I've had a headache for 2 days\" or \"my knee hurts when climbing stairs.\" And if you'd like to speak to a doctor directly, just say so. ⚠️ For emergencies, always call your local emergency number.",
+  };
 }
 
 
@@ -331,6 +554,13 @@ export default function MediVoyageAI({
     }
   }, [messages, isTyping, hasStarted]);
 
+  // Conversation context — remembers which specialty the user has been asking
+  // about so "connect me to a doctor" matches the right specialists.
+  const lastSpecialtyRef = useRef<SpecialtyMatch | null>(null);
+
+  // Doctor selected from an in-chat card → teleconsult popup
+  const [teleDoctor, setTeleDoctor] = useState<Doctor | null>(null);
+
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -340,7 +570,9 @@ export default function MediVoyageAI({
     setIsTyping(true);
 
     setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'bot', text: getResponse(trimmed) }]);
+      const reply = getResponse(trimmed, { lastSpecialty: lastSpecialtyRef.current, hasAccess });
+      if (reply.specialty) lastSpecialtyRef.current = reply.specialty;
+      setMessages(prev => [...prev, { role: 'bot', text: reply.text, doctorIds: reply.doctorIds }]);
       setIsTyping(false);
     }, 700 + Math.random() * 600);
   };
@@ -492,23 +724,58 @@ useEffect(() => {
       {/* Messages list */}
       {hasStarted && (
         <div className="w-full mb-4 max-h-[400px] overflow-y-auto bg-white/70 backdrop-blur-xl border border-gray-200/60 rounded-3xl p-5 space-y-4 text-left shadow-sm">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              {msg.role === 'bot' && (
-                <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
-                  <Stethoscope className="w-4 h-4 text-[#1a7be2]" />
+          {messages.map((msg, i) => {
+            const msgDoctors = msg.doctorIds
+              ?.map((id) => DOCTORS.find((d) => d.id === id))
+              .filter((d): d is Doctor => Boolean(d)) ?? [];
+
+            return (
+              <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                {msg.role === 'bot' && (
+                  <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm">
+                    <Stethoscope className="w-4 h-4 text-[#1a7be2]" />
+                  </div>
+                )}
+                <div className={`max-w-[85%] ${msg.role === 'user' ? '' : 'flex-1'}`}>
+                  <div className={`px-5 py-3 text-[14px] leading-relaxed whitespace-pre-line ${
+                    msg.role === 'user'
+                      ? 'bg-[#1a7be2] text-white rounded-3xl rounded-tr-sm font-medium shadow-md shadow-[#1a7be2]/20 inline-block'
+                      : 'bg-white text-gray-800 border border-gray-100 rounded-3xl rounded-tl-sm shadow-sm'
+                  }`}>
+                    {msg.text}
+                  </div>
+
+                  {/* ── In-chat doctor cards (matchmaking results) ── */}
+                  {msgDoctors.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {msgDoctors.map((doc) => (
+                        <button
+                          key={doc.id}
+                          onClick={() => setTeleDoctor(doc)}
+                          className="w-full flex items-center gap-3 bg-white border border-gray-200 hover:border-[#1a7be2] rounded-2xl p-3 text-left transition-all hover:shadow-md group"
+                        >
+                          <img
+                            src={doc.photo}
+                            alt={doc.name}
+                            className="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-100"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">{doc.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{doc.specialty} · {doc.years} yrs</p>
+                            <p className="text-[11px] text-gray-400 truncate">{doc.hospital}, {doc.location}</p>
+                          </div>
+                          <span className="shrink-0 inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1a7be2] bg-[#1a7be2]/5 group-hover:bg-[#1a7be2] group-hover:text-white px-3 py-2 rounded-full transition-colors">
+                            <Video className="w-3.5 h-3.5" />
+                            Book teleconsult
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className={`max-w-[85%] px-5 py-3 text-[14px] leading-relaxed ${
-                msg.role === 'user'
-                  // Updated to Brand Blue
-                  ? 'bg-[#1a7be2] text-white rounded-3xl rounded-tr-sm font-medium shadow-md shadow-[#1a7be2]/20'
-                  : 'bg-white text-gray-800 border border-gray-100 rounded-3xl rounded-tl-sm shadow-sm'
-              }`}>
-                {msg.text}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {isTyping && (
             <div className="flex gap-3">
@@ -843,8 +1110,8 @@ useEffect(() => {
         variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
         className="flex items-baseline gap-3 px-4 md:px-0"
       >
-        <span className="text-4xl font-medium text-gray-900 tracking-tight">$9</span>
-        <span className="text-gray-500 text-sm font-medium tracking-wide">/ flat rate video visit</span>
+        <span className="text-3xl font-medium text-gray-900 tracking-tight">Video visits with real doctors for $9 / visit</span>
+        
       </motion.div>
     </motion.div>
 
@@ -1571,6 +1838,82 @@ useEffect(() => {
                 Start chat <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TELECONSULT POPUP (doctor card clicked in chat) ───────────────── */}
+      {teleDoctor && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setTeleDoctor(null)}
+            aria-hidden="true"
+          />
+
+          {/* Modal card */}
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 max-w-md w-full">
+            {/* Doctor header */}
+            <div className="flex items-center gap-4 mb-5">
+              <img
+                src={teleDoctor.photo}
+                alt={teleDoctor.name}
+                className="w-16 h-16 rounded-full object-cover border-2 border-[#1a7be2]/20"
+              />
+              <div className="min-w-0">
+                <h3 className="font-bold text-lg text-gray-900 leading-tight">{teleDoctor.name}</h3>
+                <p className="text-xs text-gray-500">{teleDoctor.specialty} · {teleDoctor.years} yrs</p>
+                <p className="text-[11px] text-gray-400">{teleDoctor.hospital}, {teleDoctor.location}</p>
+              </div>
+            </div>
+
+            {hasAccess ? (
+              <>
+                <p className="text-sm text-gray-600 leading-relaxed mb-5">
+                  You're on the MediVoyage plan — schedule your video teleconsultation with {teleDoctor.name.split(' ').slice(0, 2).join(' ')} at a time that suits you.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTeleDoctor(null)}
+                    className="flex-1 border border-gray-300 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-full hover:bg-gray-50 transition-colors"
+                  >
+                    Not now
+                  </button>
+                  <button
+                    onClick={() => { setTeleDoctor(null); onDoctorsClick?.(); }}
+                    className="flex-1 bg-[#1a7be2] hover:bg-[#1565c0] text-white font-bold text-sm px-4 py-2.5 rounded-full flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Video className="w-3.5 h-3.5" /> Book teleconsult
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-[#1a7be2]/5 border border-[#1a7be2]/15 rounded-xl px-4 py-3 mb-5">
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    Video teleconsultations with our specialists are part of the <span className="font-bold text-[#1a7be2]">MediVoyage plan — $9/year</span>. It also unlocks fixed-price procedure booking and personalised travel & care itineraries.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setTeleDoctor(null)}
+                    className="flex-1 border border-gray-300 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-full hover:bg-gray-50 transition-colors"
+                  >
+                    Maybe later
+                  </button>
+                  <button
+                    onClick={() => { setTeleDoctor(null); onUpgradeClick?.(); }}
+                    className="flex-1 bg-[#1a7be2] hover:bg-[#1565c0] text-white font-bold text-sm px-4 py-2.5 rounded-full flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-[#1a7be2]/20"
+                  >
+                    Upgrade — $9/year <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-400 text-center mt-3">
+                  You'll be asked to sign in first if you haven't already.
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}

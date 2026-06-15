@@ -25,7 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const hasAccess = user?.user_metadata?.has_paid === true;
+  // Dev preview: set VITE_FORCE_PAID=true in .env to experience the paid plan
+  // locally without a real payment. Never set this in production.
+  const forcePaid = import.meta.env.VITE_FORCE_PAID === 'true';
+  const hasAccess = forcePaid || user?.user_metadata?.has_paid === true;
 
   const refreshAccess = async () => {
     const { data } = await supabase.auth.refreshSession();
